@@ -42,7 +42,7 @@ heightPix =768#768  #monitor height in pixels
 monitorwidth = 40. #28.5 #monitor width in centimeters
 viewdist = 57.; #cm
 pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
-bgColor = [1,1,1] #black background
+bgColor = [0,0,0] #"gray background"
 monitorname = 'mitsubishi' #in psychopy Monitors Center
 allowGUI = False
 waitBlank = False
@@ -61,18 +61,19 @@ mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch 
 mon.setSizePix( (widthPix,heightPix) )
 myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,rgb=bgColor,fullscr=fullscr,screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
 
-gaussian1 = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
-gaussian2 = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (0, 0, 0),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
-gaussian3 = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
+targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
+foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0, 1),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
+blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 
-beforeTrials = visual.TextStim(myWin,pos=(0, 0),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
-betweenTrials = visual.TextStim(myWin,pos=(0, 0),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
+beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
+respPromptText = visual.TextStim(myWin,pos=(0, -.3),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
+betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
            
 #while True:
-#    gaussian1.pos= (x)
-#    gaussian2.pos= (y)
-#    gaussian1.draw()
-#    gaussian2.draw()
+#    targetDot.pos= (x)
+#    foilDot.pos= (y)
+#    targetDot.draw()
+#    foilDot.draw()
 #    myWin.flip()
 locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
 
@@ -99,48 +100,52 @@ def oneFrameOfStim(n): #trial stimulus function
     probePosition1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['topBottom'])
     probePosition2 =([thisTrial['location'][0]-thisTrial['tilt'], probePosition1[-1]*-1])
     if n<initialProbe or probeDisappear< n<switchCues:
-        gaussian1.pos= (greenDotPosition)
-        gaussian2.pos= (greyDotPosition)
-        gaussian1.draw()
-        gaussian2.draw()
+        targetDot.pos= (greenDotPosition)
+        foilDot.pos= (greyDotPosition)
+        targetDot.draw()
+        foilDot.draw()
     elif initialProbe<n<trialWithProbe:
-        gaussian1.pos= (greenDotPosition)
-        gaussian2.pos= (greyDotPosition)
-        gaussian3.pos = (probePosition1)
-        gaussian1.draw()
-        gaussian2.draw()
-        gaussian3.draw()
+        targetDot.pos= (greenDotPosition)
+        foilDot.pos= (greyDotPosition)
+        blackDot.pos = (probePosition1)
+        targetDot.draw()
+        foilDot.draw()
+        blackDot.draw()
     elif probeDisappear<n<switchCues or probeReturns<n<disappearsAgain:
         greenDotPosition*=-1
         greyDotPosition*=-1
-        gaussian1.pos= (greenDotPosition)
-        gaussian2.pos= (greyDotPosition)
-        gaussian1.draw()
-        gaussian2.draw()
+        targetDot.pos= (greenDotPosition)
+        foilDot.pos= (greyDotPosition)
+        targetDot.draw()
+        foilDot.draw()
     elif switchCues<n<probeReturns:
         greenDotPosition*=-1
         greyDotPosition*=-1
-        gaussian1.pos= (greenDotPosition)
-        gaussian2.pos= (greyDotPosition)
-        gaussian3.pos = (probePosition2)
-        gaussian1.draw()
-        gaussian2.draw()
-        gaussian3.draw()
+        targetDot.pos= (greenDotPosition)
+        foilDot.pos= (greyDotPosition)
+        blackDot.pos = (probePosition2)
+        targetDot.draw()
+        foilDot.draw()
+        blackDot.draw()
     myWin.flip()
 
 print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
 #print >>dataFile2, 'trialnum\tsubject\tlocation\ttopBottom\tTilt\tDirection\t'
 
-
+expStop = False
 nDone = 1
-while nDone<= trials.nTotal:
+while nDone<= trials.nTotal and not expStop:
     if nDone ==1:
-        beforeTrials.setText("In this task you are required to look at the green dot on the screen. Look directly at the green dot, wherever it moves on the screen "
+        beforeTrialsText.setText("In this task you are required to look at the green dot on the screen. Look directly at the green dot, wherever it moves on the screen "
                    "Whilst looking at the green dot, you will see a black dot that will either move upwards or downwards during the "
                    "trial. At the end of the trial you are required to identify whether or not the black dot moved in a clockwise "
-                   "or anticlockwise direction. Press the right arrow if it appeared to move clockwise, and the left arrow if it "
-                   "moved anticlockwise. Press SPACE when you are ready to begin.")
-        beforeTrials.draw()
+                   "or anticlockwise direction. Press the right arrow if its trajectory had the tilt of  a forward slash / \n"
+                   "and the left arrow if it had the tilt of a backslash \ ")
+        respPromptText.setText("anticlockwise \                          clockwise /      ")
+        beforeTrialsText.draw()
+        respPromptText.draw()
+        betweenTrialsText.setText('Press SPACE to continue')
+        betweenTrialsText.draw()
         myWin.flip(clearBuffer=True) 
         keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
         if 'escape' in keysPressed:
@@ -157,28 +162,37 @@ while nDone<= trials.nTotal:
 
     for n in range(trialDurFramesTotal): #Loop for the trial stimulus
         oneFrameOfStim(n)
-    keyPress = event.waitKeys(maxWait = 120, keyList = ['left','right'], timeStamped = False) #'down' removed
-    if keyPress == ['left']:#recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
-        respLeftRight = 0
-    else:
-        respLeftRight = 1
+    keysPressed = event.waitKeys(maxWait = 120, keyList = ['left','right','escape'], timeStamped = False) #'down' removed
+    if 'escape' in keysPressed:
+            expStop=True
+    if not expStop:
+        if 'left' in keysPressed: #recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
+            respLeftRight = 0
+        else:
+            respLeftRight = 1
     
-    #header print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
-    oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
-    oneTrialOfData = (str(nDone)+'\t'+subject+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['topBottom'] + 
-                                    "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
-    print(oneTrialOfData, file= dataFile) 
-#    print >>dataFile2, nDone,'\t',subject,'\t',thisTrial['location'][0],'\t', thisTrial['topBottom'], '\t', thisTrial['tilt'],'\t', respLeftRight 
-    if nDone< trials.nTotal:
-        betweenTrials.setText('Press SPACE to continue')
-        betweenTrials.draw()
-        myWin.flip(clearBuffer=True) 
-        keyPressBetweenTrials = event.waitKeys(maxWait = 120, keyList = ['space'], timeStamped = False) 
-        thisTrial=trials.next()
-        myWin.clearBuffer()
-    nDone+=1
-    
-    
+        #header print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
+        oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
+        oneTrialOfData = (str(nDone)+'\t'+subject+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['topBottom'] + 
+                                        "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
+        print(oneTrialOfData, file= dataFile) 
+        if nDone< trials.nTotal:
+            #betweenTrialsText.setText('Press SPACE to continue')
+            betweenTrialsText.draw()
+            myWin.flip(clearBuffer=True) 
+            keysPressedBetweenTrials = event.waitKeys(maxWait = 120, keyList = ['space'], timeStamped = False)
+            if 'escape' in keysPressedBetweenTrials:
+                    expStop=True
+            thisTrial=trials.next()
+            myWin.clearBuffer()
+        nDone+=1
+
+if expStop:
+    print("Experiment stopped because user cancelled")
+else: 
+    print("Experiment finished")
+if  nDone >0:
+    print('Of ',nDone,' trials, on ',3, '% of all trials all targets reported exactly correct',sep='')
 
 
 

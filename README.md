@@ -4,3 +4,6 @@ Licensing: Restricted until I check with Fajou.
 
 Fajou programmed initial version in late October 2014.
 
+##Szinte & Cavanagh stimulus details
+"gray background", luminance not specified.
+
