@@ -19,13 +19,11 @@ if os.path.isdir('.'+os.sep+'data'):
 else:
     print('"data" directory does not exist, so saving data in present working directory')
     dataDir='.'
-fileName = dataDir+'/'+subject+'probeDropTask'+timeAndDateStr
-
+fileName = os.path.join(dataDir, subject+'probeDropTask'+timeAndDateStr)
 dataFile = open(fileName+'.txt', 'w')  # sys.stdout  #StringIO.StringIO()
-logF = open(fileName+'.log', 'w')    #StringIO.StringIO()
 saveCodeCmd = 'cp \'' + sys.argv[0] + '\' '+ fileName + '.py'
 os.system(saveCodeCmd)  #save a copy of the code as it was when that subject was run
-logFname = 'logLastRun.log'
+logFname = fileName+'.log' 
 ppLogF = ppLog.LogFile(logFname, 
     filemode='w',#if you set this to 'a' it will append instead of overwriting
     level=ppLog.INFO)#errors, data and warnings will be sent to this logfile - CF: have not added any errors or warnings to this program like 
