@@ -1,5 +1,5 @@
 from __future__ import print_function
-from psychopy import sound, monitors, core, visual, event, data
+from psychopy import sound, monitors, core, visual, event, data, gui
 from psychopy import logging as ppLog 
 import numpy as np
 from copy import deepcopy
@@ -26,15 +26,35 @@ os.system(saveCodeCmd)  #save a copy of the code as it was when that subject was
 logFname = fileName+'.log' 
 ppLogF = ppLog.LogFile(logFname, 
     filemode='w',#if you set this to 'a' it will append instead of overwriting
-    level=ppLog.INFO)#errors, data and warnings will be sent to this logfile - CF: have not added any errors or warnings to this program like 
-                        #timing blips or anything. So you may want to add that if you want them
+    level=ppLog.INFO)#errors, data and warnings will be sent to this logfile 
 trialClock = core.Clock()
 
 ballStdDev = 0.8
 autoLogging = False
 
+infoFirst = { 'Check refresh etc':True, 'Fullscreen (timing errors if not)': True, 'Screen refresh rate': 60 }
+OK = gui.DlgFromDict(dictionary=infoFirst, 
+    title='Szinte & Cavanagh spatiotopic apparent motion', 
+    order=[ 'Check refresh etc', 'Fullscreen (timing errors if not)'], 
+    tip={'Check refresh etc': 'To confirm refresh rate and that can keep up, at least when drawing a grating'},
+    #fixed=['Check refresh etc'])#this attribute can't be changed by the user
+    )
+if not OK.OK:
+    print('User cancelled from dialog box'); core.quit()
+checkRefreshEtc = infoFirst['Check refresh etc']
+fullscr = infoFirst['Fullscreen (timing errors if not)']
+refreshRate = infoFirst['Screen refresh rate']
+quitFinder = False
+if checkRefreshEtc:
+    quitFinder = True 
+if quitFinder:
+    import os
+    applescript="\'tell application \"Finder\" to quit\'"
+    shellCmd = 'osascript -e '+applescript
+    os.system(shellCmd)
+
 fullscr=0 
-scrn=0 #1 means second s
+scrn=0 #1 means second screen
 widthPix =1024#1024  #monitor width in pixels
 heightPix =768#768  #monitor height in pixels
 monitorwidth = 40. #28.5 #monitor width in centimeters
@@ -44,16 +64,7 @@ bgColor = [0,0,0] #"gray background"
 monitorname = 'mitsubishi' #in psychopy Monitors Center
 allowGUI = False
 waitBlank = False
-hz = 100
 units = 'deg'
-
-trialDurFramesTotal = int(1.7*hz) #total duration of each trial
-initialProbe = 0.6*hz #green and grey dot without probe for the first 600 ms
-trialWithProbe = 1.0*hz #probe appears for 400 ms
-probeDisappear = 1.1*hz # probe disappears for 100 ms whilst green and grey dot remain the same
-switchCues = 1.2*hz # green and grey dots switch positions for 100 ms
-probeReturns = 1.6*hz # probe returns on the other side of the horizontal meridian for 400 ms
-disappearsAgain = 1.7*hz # probe disappears
 
 mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch the most recent calib for this monitor
 mon.setSizePix( (widthPix,heightPix) )
@@ -88,6 +99,14 @@ blockReps = 1
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
+trialDurFramesTotal = int(1.7*refreshRate) #total duration of each trial
+initialDur = 0.6*refreshRate #target and foil dot without probe for the first 600 ms
+trialWithProbe = 1.0*refreshRate #probe appears for 400 ms
+probeDisappear = 1.1*refreshRate # probe disappears for 100 ms whilst target and foil dot remain the same
+switchCues = 1.2*refreshRate # target and foil dots switch positions for 100 ms
+probeReturns = 1.6*refreshRate # probe returns on the other side of the horizontal meridian for 400 ms
+disappearsAgain = 1.7*refreshRate # probe disappears
+
 def oneFrameOfStim(n): #trial stimulus function
     if nDone<=trials.nTotal/2: 
         greenDotPosition=np.array([-5,0]) # position of the green and grey stimulus for first half of trials - left to right - this has not been coded in to the data file, may be a good idea to do so
@@ -97,26 +116,28 @@ def oneFrameOfStim(n): #trial stimulus function
         greyDotPosition =np.array([-5,0])
     probePosition1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['topBottom'])
     probePosition2 =([thisTrial['location'][0]-thisTrial['tilt'], probePosition1[-1]*-1])
-    if n<initialProbe or probeDisappear< n<switchCues:
+    if n <= initialDur or probeDisappear < n < switchCues: #show target and foil only
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
         targetDot.draw()
         foilDot.draw()
-    elif initialProbe<n<trialWithProbe:
+    elif initialDur < n < trialWithProbe: #show first position of probe
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
         blackDot.pos = (probePosition1)
         targetDot.draw()
         foilDot.draw()
         blackDot.draw()
-    elif probeDisappear<n<switchCues or probeReturns<n<disappearsAgain:
+    elif (probeDisappear < n < switchCues or #no probe, target and foil only, in exchanged positions?
+          probeReturns < n < disappearsAgain):
         greenDotPosition*=-1
         greyDotPosition*=-1
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
         targetDot.draw()
         foilDot.draw()
-    elif switchCues<n<probeReturns:
+    elif switchCues < n < probeReturns: #target and foil in exchanged positions, probe in new location
+        #I DONT UNDERSTAND THIS ONE, SEEMS LIKE PROBE SHOULD NOT HAVE RETURNED YET
         greenDotPosition*=-1
         greyDotPosition*=-1
         targetDot.pos= (greenDotPosition)
