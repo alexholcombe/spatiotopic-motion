@@ -32,7 +32,7 @@ trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 
-infoFirst = { 'Check refresh etc':True, 'Fullscreen (timing errors if not)': True, 'Screen refresh rate': 60 }
+infoFirst = { 'Check refresh etc':False, 'Fullscreen (timing errors if not)': False, 'Screen refresh rate': 60 }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -116,7 +116,8 @@ def oneFrameOfStim(n): #trial stimulus function
         greyDotPosition =np.array([-5,0])
     probePosition1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['topBottom'])
     probePosition2 =([thisTrial['location'][0]-thisTrial['tilt'], probePosition1[-1]*-1])
-    if n <= initialDur or probeDisappear < n < switchCues: #show target and foil only
+    if (n <= initialDur or   #show target and foil only
+        probeDisappear < n < switchCues): #THIS LOOKS IDENTICAL TO TWO-BELOW
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
         targetDot.draw()
@@ -128,8 +129,8 @@ def oneFrameOfStim(n): #trial stimulus function
         targetDot.draw()
         foilDot.draw()
         blackDot.draw()
-    elif (probeDisappear < n < switchCues or #no probe, target and foil only, in exchanged positions?
-          probeReturns < n < disappearsAgain):
+    elif (probeReturns < n < disappearsAgain): # or
+            #probeDisappear < n < switchCues or #no probe, target and foil only, in exchanged positions?
         greenDotPosition*=-1
         greyDotPosition*=-1
         targetDot.pos= (greenDotPosition)
