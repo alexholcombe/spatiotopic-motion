@@ -1,3 +1,4 @@
+from __future__ import print_function
 from psychopy import sound, monitors, core, visual, event, data
 from psychopy import logging as ppLog 
 import numpy as np
@@ -7,7 +8,6 @@ import time, colorsys
 import sys, platform, os, StringIO
 from pylink import *
 
-import os
 applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
 shellCmd = 'osascript -e '+applescript
 os.system(shellCmd)
@@ -17,7 +17,7 @@ subject = 'CF-Practice'
 if os.path.isdir('.'+os.sep+'data'):
     dataDir='data'
 else:
-    print '"data" directory does not exist, so saving data in present working directory'
+    print('"data" directory does not exist, so saving data in present working directory')
     dataDir='.'
 fileName = dataDir+'/'+subject+'probeDropTask'+timeAndDateStr
 
@@ -32,17 +32,13 @@ ppLogF = ppLog.LogFile(logFname,
                         #timing blips or anything. So you may want to add that if you want them
 trialClock = core.Clock()
 
-
-
-
 ballStdDev = 0.8
 autoLogging = False
 
-
 fullscr=0 
-scrn=1 #1 means second s
-widthPix =1440#1024  #monitor width in pixels
-heightPix =900#768  #monitor height in pixels
+scrn=0 #1 means second s
+widthPix =1024#1024  #monitor width in pixels
+heightPix =768#768  #monitor height in pixels
 monitorwidth = 40. #28.5 #monitor width in centimeters
 viewdist = 57.; #cm
 pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
@@ -64,7 +60,6 @@ disappearsAgain = 1.7*hz # probe disappears
 mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch the most recent calib for this monitor
 mon.setSizePix( (widthPix,heightPix) )
 myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,rgb=bgColor,fullscr=fullscr,screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
-
 
 gaussian1 = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 gaussian2 = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (0, 0, 0),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
@@ -133,42 +128,47 @@ def oneFrameOfStim(n): #trial stimulus function
         gaussian3.draw()
     myWin.flip()
 
-print >>dataFile, 'trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t'
+print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
 #print >>dataFile2, 'trialnum\tsubject\tlocation\ttopBottom\tTilt\tDirection\t'
 
 
 nDone = 1
 while nDone<= trials.nTotal:
     if nDone ==1:
-        beforeTrials.setText("In this task you are required to look at the green dot on the screen. The green dot will switch positions with "
-                   "the grey dot on the screen. You are required to look at the green dot directly, wherever it moves on the screen "
+        beforeTrials.setText("In this task you are required to look at the green dot on the screen. Look directly at the green dot, wherever it moves on the screen "
                    "Whilst looking at the green dot, you will see a black dot that will either move upwards or downwards during the "
                    "trial. At the end of the trial you are required to identify whether or not the black dot moved in a clockwise "
                    "or anticlockwise direction. Press the right arrow if it appeared to move clockwise, and the left arrow if it "
-                   "moved anticlockwise. For the first block of trials, the green dot will always start in the left position and jump "
-                   "to the right. Press SPACE when you are ready to begin.")
+                   "moved anticlockwise. Press SPACE when you are ready to begin.")
         beforeTrials.draw()
         myWin.flip(clearBuffer=True) 
-        keyPressBetweenTrials = event.waitKeys(maxWait = 120, keyList = ['space'], timeStamped = False)
+        keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
+        if 'escape' in keysPressed:
+            print('User cancelled by pressing <escape>'); core.quit()
         myWin.clearBuffer()
     elif nDone == trials.nTotal/2 + 1:
         beforeTrials.setText("""In this next part of the task, the green dot will appear on the right and jump to the left. Press SPACE to continue.""")
         beforeTrials.draw()
         myWin.flip(clearBuffer=True)
-        keyPressBetweenTrials = event.waitKeys(maxWait = 120, keyList = ['space'], timeStamped = False)
+        keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
+        if 'escape' in keysPressed:
+            print('User cancelled by pressing <escape>'); core.quit()
         myWin.clearBuffer()
 
     for n in range(trialDurFramesTotal): #Loop for the trial stimulus
         oneFrameOfStim(n)
     keyPress = event.waitKeys(maxWait = 120, keyList = ['left','right'], timeStamped = False) #'down' removed
-#    if keyPress == ['down']:
-#        keyCode = 0
     if keyPress == ['left']:#recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
-        keyCode = 0
+        respLeftRight = 0
     else:
-        keyCode = 1
-    print >>dataFile, nDone,'\t',subject,'\t',thisTrial['location'][0],'\t', thisTrial['topBottom'], '\t', thisTrial['tilt'],'\t', thisTrial['jitter'],'\t', keyCode 
-#    print >>dataFile2, nDone,'\t',subject,'\t',thisTrial['location'][0],'\t', thisTrial['topBottom'], '\t', thisTrial['tilt'],'\t', keyCode 
+        respLeftRight = 1
+    
+    #header print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
+    oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
+    oneTrialOfData = (str(nDone)+'\t'+subject+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['topBottom'] + 
+                                    "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
+    print(oneTrialOfData, file= dataFile) 
+#    print >>dataFile2, nDone,'\t',subject,'\t',thisTrial['location'][0],'\t', thisTrial['topBottom'], '\t', thisTrial['tilt'],'\t', respLeftRight 
     if nDone< trials.nTotal:
         betweenTrials.setText('Press SPACE to continue')
         betweenTrials.draw()
