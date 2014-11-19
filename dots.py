@@ -89,7 +89,7 @@ locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #Potential other conditi
 stimList=[]
 for location in locationOfProbe: #location of the probe for the trial
     for shift in [-1,1]: #switching between probe moving top to bottom; and bottom to top
-        for tilt in [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted
+        for tilt in [-2,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocation = [location[0]+jitter, location[1]]
                 stimList.append({'location': probeLocation, 'topBottom': shift, 'tilt': tilt, 'jitter': jitter})
@@ -108,7 +108,7 @@ probeSecondAppearance = 1.6*refreshRate # probe returns on the other side of the
 probeSecondDisappearance = 1.7*refreshRate # probe disappears
 
 def oneFrameOfStim(n): #trial stimulus function
-    if nDone<=trials.nTotal/2: 
+    if nDone>=trials.nTotal/2: 
         greenDotPosition=np.array([-5,0]) # position of the green and grey stimulus for first half of trials - left to right - this has not been coded in to the data file, may be a good idea to do so
         greyDotPosition =np.array([5,0])  
     else:
@@ -118,31 +118,23 @@ def oneFrameOfStim(n): #trial stimulus function
     probePosition2 =([thisTrial['location'][0]-thisTrial['tilt'], probePosition1[-1]*-1])
     
     if n <= initialDur:   #show target and foil only, either because first part of trial
-        targetDot.pos= (greenDotPosition)
-        foilDot.pos= (greyDotPosition)
+        pass #dont draw black dot, dont change positions
     elif initialDur <= n < probeFirstDisappearance: #show first position of probe  WHAT HAPPENS AFTER THIS? trialWithProbe weird
-        #Seems there is a missing 100 ms after trialWithProbe but before probeFirstDisappearance. Yes, then the default happens of drawing target and foil only
-        targetDot.pos= (greenDotPosition)
-        foilDot.pos= (greyDotPosition)
         blackDot.pos = (probePosition1)
         blackDot.draw()
     elif probeFirstDisappearance <= n < switchCues:  #after probe first disappearance, but before target moves
-        targetDot.pos= (greenDotPosition)
-        foilDot.pos= (greyDotPosition)
+        pass #dont draw black dot, don't change positions
     elif switchCues <= n < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
         greenDotPosition*=-1
         greyDotPosition*=-1
-        targetDot.pos= (greenDotPosition)
-        foilDot.pos= (greyDotPosition)
         blackDot.pos = (probePosition2)
         blackDot.draw()
-    elif (probeSecondAppearance <= n < probeSecondDisappearance): # or
-            #probeDisappear < n < switchCues or #no probe, target and foil only, in exchanged positions?
+    elif (probeSecondAppearance <= n < probeSecondDisappearance): #target and foil, in exchanged positions
         greenDotPosition*=-1
         greyDotPosition*=-1
-        targetDot.pos= (greenDotPosition)
-        foilDot.pos= (greyDotPosition)
 
+    targetDot.pos= (greenDotPosition)
+    foilDot.pos= (greyDotPosition)
     targetDot.draw()
     foilDot.draw()
     myWin.flip()
