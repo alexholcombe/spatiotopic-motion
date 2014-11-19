@@ -1,6 +1,6 @@
 Szinte & Cavanagh apparent motion stimulus, implemented with [Psychopy](https://github.com/psychopy/psychopy)
 ============================
-Licensing: Restricted until I check with Fajou.
+Licensing: MIT license, which is like CC-BY for code.
 
 Fajou programmed initial version in late October 2014.
 

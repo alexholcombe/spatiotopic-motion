@@ -121,7 +121,8 @@ def oneFrameOfStim(n): #trial stimulus function
         probeFirstDisappearance < n < switchCues):  #or after probe first disappearance, but before target moves
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
-    elif initialDur < n < trialWithProbe: #show first position of probe  WHAT? trialWithProbe weird
+    elif initialDur < n < trialWithProbe: #show first position of probe  WHAT HAPPENS AFTER THIS? trialWithProbe weird
+        #Seems there is a missing 100 ms after trialWithProbe but before probeFirstDisappearance. Yes, then the default happens of drawing target and foil only
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
         blackDot.pos = (probePosition1)
