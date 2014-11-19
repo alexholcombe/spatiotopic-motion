@@ -102,10 +102,10 @@ thisTrial = trials.next()
 trialDurFramesTotal = int(1.7*refreshRate) #total duration of each trial
 initialDur = 0.6*refreshRate #target and foil dot without probe for the first 600 ms
 trialWithProbe = 1.0*refreshRate #probe appears for 400 ms
-probeDisappear = 1.1*refreshRate # probe disappears for 100 ms whilst target and foil dot remain the same
+probeFirstDisappearance = 1.1*refreshRate # probe disappears for 100 ms whilst target and foil dot remain the same
 switchCues = 1.2*refreshRate # target and foil dots switch positions for 100 ms
-probeReturns = 1.6*refreshRate # probe returns on the other side of the horizontal meridian for 400 ms
-disappearsAgain = 1.7*refreshRate # probe disappears
+probeSecondAppearance = 1.6*refreshRate # probe returns on the other side of the horizontal meridian for 400 ms
+probeSecondDisappearance = 1.7*refreshRate # probe disappears
 
 def oneFrameOfStim(n): #trial stimulus function
     if nDone<=trials.nTotal/2: 
@@ -116,37 +116,32 @@ def oneFrameOfStim(n): #trial stimulus function
         greyDotPosition =np.array([-5,0])
     probePosition1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['topBottom'])
     probePosition2 =([thisTrial['location'][0]-thisTrial['tilt'], probePosition1[-1]*-1])
-    if (n <= initialDur or   #show target and foil only
-        probeDisappear < n < switchCues): #THIS LOOKS IDENTICAL TO TWO-BELOW
+    
+    if (n <= initialDur or   #show target and foil only, either because first part of trial
+        probeFirstDisappearance < n < switchCues):  #or after probe first disappearance, but before target moves
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
-        targetDot.draw()
-        foilDot.draw()
-    elif initialDur < n < trialWithProbe: #show first position of probe
+    elif initialDur < n < trialWithProbe: #show first position of probe  WHAT? trialWithProbe weird
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
         blackDot.pos = (probePosition1)
-        targetDot.draw()
-        foilDot.draw()
         blackDot.draw()
-    elif (probeReturns < n < disappearsAgain): # or
+    elif (probeSecondAppearance < n < probeSecondDisappearance): # or
             #probeDisappear < n < switchCues or #no probe, target and foil only, in exchanged positions?
         greenDotPosition*=-1
         greyDotPosition*=-1
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
-        targetDot.draw()
-        foilDot.draw()
-    elif switchCues < n < probeReturns: #target and foil in exchanged positions, probe in new location
+    elif switchCues < n < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
         #I DONT UNDERSTAND THIS ONE, SEEMS LIKE PROBE SHOULD NOT HAVE RETURNED YET
         greenDotPosition*=-1
         greyDotPosition*=-1
         targetDot.pos= (greenDotPosition)
         foilDot.pos= (greyDotPosition)
         blackDot.pos = (probePosition2)
-        targetDot.draw()
-        foilDot.draw()
         blackDot.draw()
+    targetDot.draw()
+    foilDot.draw()
     myWin.flip()
 
 print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
