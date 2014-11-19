@@ -1,4 +1,4 @@
-Szinte & Cavanagh apparent motion stimulus, implemented with [Psychopy](https://github.com/psychopy/psychopy)
+Szinte & Cavanagh 2011 E2, apparent motion, implemented with [Psychopy](https://github.com/psychopy/psychopy)
 ============================
 Licensing: MIT license, which is like CC-BY for code.
 
