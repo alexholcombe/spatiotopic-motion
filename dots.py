@@ -99,13 +99,13 @@ blockReps = 1
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
-trialDurFramesTotal = int(1.7*refreshRate) #total duration of each trial
-initialDur = 0.6*refreshRate #target and foil dot without probe for the first 600 ms
-trialWithProbe = 1.0*refreshRate #probe appears for 400 ms
-probeFirstDisappearance = 1.1*refreshRate # probe disappears for 100 ms whilst target and foil dot remain the same
-switchCues = 1.2*refreshRate # target and foil dots switch positions for 100 ms
-probeSecondAppearance = 1.6*refreshRate # probe returns on the other side of the horizontal meridian for 400 ms
-probeSecondDisappearance = 1.7*refreshRate # probe disappears
+initialDur = round(0.6*refreshRate) #target and foil dot without probe for the first 600 ms
+trialWithProbe = round(1.0*refreshRate) #probe appears for 400 ms
+probeFirstDisappearance = round(1.1*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
+switchCues = round(1.2*refreshRate) # target and foil dots switch positions for 100 ms
+probeSecondAppearance = round(1.3*refreshRate) # probe returns on the other side of the horizontal meridian for 400 ms
+probeSecondDisappearance = round(1.7*refreshRate) # probe disappears
+trialDurFramesTotal = int( round( probeSecondDisappearance + 0.1*refreshRate ) )
 
 def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimulus function
     targetDotPosThis = deepcopy(targetDotPos) #dont change starting value 
@@ -121,12 +121,12 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     elif switchCues <= n < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
         targetDotPosThis *=-1
         foilDotPosThis *= -1
-        blackDot.pos = (probePos2)
-        blackDot.draw()
-    elif (probeSecondAppearance <= n < probeSecondDisappearance): #target and foil, in exchanged positions
+    elif probeSecondAppearance <= n < probeSecondDisappearance: #target and foil, in exchanged positions
         targetDotPosThis *=-1
         foilDotPosThis *=-1
-
+        blackDot.pos = (probePos2)
+        blackDot.draw()
+        
     targetDot.pos= (targetDotPosThis)
     foilDot.pos= (foilDotPosThis)
     targetDot.draw()
