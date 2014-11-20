@@ -88,11 +88,11 @@ locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #Potential other conditi
 
 stimList=[]
 for location in locationOfProbe: #location of the probe for the trial
-    for shift in [-1,1]: #switching between probe moving top to bottom; and bottom to top
+    for downUp in [-1,1]: #switching between probe moving top to bottom; and bottom to top
         for tilt in [-2,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocation = [location[0]+jitter, location[1]]
-                stimList.append({'location': probeLocation, 'topBottom': shift, 'tilt': tilt, 'jitter': jitter})
+                stimList.append({'location': probeLocation, 'downUp': downUp, 'tilt': tilt, 'jitter': jitter})
 
 
 blockReps = 1
@@ -107,40 +107,32 @@ switchCues = 1.2*refreshRate # target and foil dots switch positions for 100 ms
 probeSecondAppearance = 1.6*refreshRate # probe returns on the other side of the horizontal meridian for 400 ms
 probeSecondDisappearance = 1.7*refreshRate # probe disappears
 
-def oneFrameOfStim(n): #trial stimulus function
-    if nDone>=trials.nTotal/2: 
-        greenDotPosition=np.array([-5,0]) # position of the green and grey stimulus for first half of trials - left to right - this has not been coded in to the data file, may be a good idea to do so
-        greyDotPosition =np.array([5,0])  
-    else:
-        greenDotPosition=np.array([5,0])  #position of the green and grey stimulus for second half of trials - right to left
-        greyDotPosition =np.array([-5,0])
-    probePosition1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['topBottom'])
-    probePosition2 =([thisTrial['location'][0]-thisTrial['tilt'], probePosition1[-1]*-1])
+def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimulus function
     
     if n <= initialDur:   #show target and foil only, either because first part of trial
         pass #dont draw black dot, dont change positions
-    elif initialDur <= n < probeFirstDisappearance: #show first position of probe  WHAT HAPPENS AFTER THIS? trialWithProbe weird
-        blackDot.pos = (probePosition1)
+    elif initialDur <= n < probeFirstDisappearance: #show first position of probe  
+        blackDot.pos = (probePos1)
         blackDot.draw()
     elif probeFirstDisappearance <= n < switchCues:  #after probe first disappearance, but before target moves
         pass #dont draw black dot, don't change positions
     elif switchCues <= n < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
-        greenDotPosition*=-1
-        greyDotPosition*=-1
-        blackDot.pos = (probePosition2)
+        targetDotPos*=-1
+        foilDotPos*=-1
+        blackDot.pos = (probePos2)
         blackDot.draw()
     elif (probeSecondAppearance <= n < probeSecondDisappearance): #target and foil, in exchanged positions
-        greenDotPosition*=-1
-        greyDotPosition*=-1
+        targetDotPos*=-1
+        foilDotPos*=-1
 
-    targetDot.pos= (greenDotPosition)
-    foilDot.pos= (greyDotPosition)
+    targetDot.pos= (targetDotPos)
+    foilDot.pos= (foilDotPos)
     targetDot.draw()
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
-#print >>dataFile2, 'trialnum\tsubject\tlocation\ttopBottom\tTilt\tDirection\t'
+print('trialnum\tsubject\tlocation\tdownUp\tTilt\tJitter\tDirection\t', file=dataFile)
+#print >>dataFile2, 'trialnum\tsubject\tlocation\tdownUp\tTilt\tDirection\t'
 
 expStop = False
 nDone = 1
@@ -170,8 +162,18 @@ while nDone<= trials.nTotal and not expStop:
             print('User cancelled by pressing <escape>'); core.quit()
         myWin.clearBuffer()
 
+    if nDone<=trials.nTotal/2: 
+        targetDotPos=np.array([-5,0]) # position of the green and grey stimulus for first half of trials - left to right - this has not been coded in to the data file, may be a good idea to do so
+        foilDotPos =np.array([5,0])  
+    else:
+        targetDotPos=np.array([5,0])  #position of the green and grey stimulus for second half of trials - right to left
+        foilDotPos =np.array([-5,0])
+    probePos1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['downUp'])
+    probePos2 =([thisTrial['location'][0]-thisTrial['tilt'], probePos1[-1]*-1])
+    
     for n in range(trialDurFramesTotal): #Loop for the trial stimulus
-        oneFrameOfStim(n)
+        oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
+        
     keysPressed = event.waitKeys(maxWait = 120, keyList = ['left','right','escape'], timeStamped = False) #'down' removed
     if 'escape' in keysPressed:
             expStop=True
@@ -181,9 +183,9 @@ while nDone<= trials.nTotal and not expStop:
         else:
             respLeftRight = 1
     
-        #header print('trialnum\tsubject\tlocation\ttopBottom\tTilt\tJitter\tDirection\t', file=dataFile)
+        #header print('trialnum\tsubject\tlocation\tdownUp\tTilt\tJitter\tDirection\t', file=dataFile)
         oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
-        oneTrialOfData = (str(nDone)+'\t'+subject+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['topBottom'] + 
+        oneTrialOfData = (str(nDone)+'\t'+subject+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['downUp'] + 
                                         "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
         print(oneTrialOfData, file= dataFile) 
         if nDone< trials.nTotal:
