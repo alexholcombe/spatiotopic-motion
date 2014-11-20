@@ -95,28 +95,32 @@ for location in locationOfProbe: #location of the probe for the trial
                 probeLocation = [location[0]+jitter, location[1]]
                 stimList.append({'location': probeLocation, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
-
 blockReps = 1
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
+#durations in frames
 initialDur = round(0.6*refreshRate) #target and foil dot without probe for the first 600 ms
 trialWithProbe = round(1.0*refreshRate) #probe appears for 400 ms
 probeFirstDisappearance = round(1.1*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
 switchCues = round(1.2*refreshRate) # target and foil dots switch positions for 100 ms
 probeSecondAppearance = round(1.3*refreshRate) # probe returns on the other side of the horizontal meridian for 400 ms
 probeSecondDisappearance = round(1.7*refreshRate) # probe disappears
-trialDurFramesTotal = int( round( probeSecondDisappearance + 0.1*refreshRate ) )
+oneCycleFrames = int( round( probeSecondDisappearance + 0.1*refreshRate ) )
+totFrames = oneCycleFrames*3
 
 def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimulus function
     targetDotPosThis = deepcopy(targetDotPos) #dont change starting value 
     foilDotPosThis =  deepcopy(foilDotPos)
     
+    twoCycles = oneCycleFrames*2 #First the target dot left->right->left->right to get eye movements in swing of things
+    
     if n <= initialDur:   #show target and foil only, either because first part of trial
         pass #dont draw black dot, dont change positions
-    elif initialDur <= n < probeFirstDisappearance: #show first position of probe  
-        blackDot.pos = (probePos1)
-        blackDot.draw()
+    elif initialDur <= n < probeFirstDisappearance: #show first position of probe
+        if n >= twoCycles: #dont draw probe for first two cycles
+            blackDot.pos = (probePos1)
+            blackDot.draw()
     elif probeFirstDisappearance <= n < switchCues:  #after probe first disappearance, but before target moves
         pass #dont draw black dot, don't change positions
     elif switchCues <= n < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
@@ -125,8 +129,9 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     elif probeSecondAppearance <= n < probeSecondDisappearance: #target and foil, in exchanged positions
         targetDotPosThis *=-1
         foilDotPosThis *=-1
-        blackDot.pos = (probePos2)
-        blackDot.draw()
+        if n >= twoCycles: #dont draw probe for first two cycles
+            blackDot.pos = (probePos2)
+            blackDot.draw()
     elif probeSecondDisappearance <= n < trialDurFramesTotal:
         targetDotPosThis *=-1
         foilDotPosThis *= -1

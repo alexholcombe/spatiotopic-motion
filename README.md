@@ -2,10 +2,12 @@ Szinte & Cavanagh 2011 E2, apparent motion, implemented with [Psychopy](https://
 ============================
 Licensing: MIT license, which is like CC-BY for code.
 
-Fajou programmed initial version in late October 2014.
+Jedi-Jr. Chris Fajou programmed initial version in late October 2014.
 
 ##Szinte & Cavanagh stimulus details
 "gray background", luminance not specified.
+
+First, target dot left->right->left->right (or the opposite direction) so participant gets their eye movements in the swing of things.
 
 1. 100 ms target and foil dot alone.
 2. Black dot added, on for 400 ms
