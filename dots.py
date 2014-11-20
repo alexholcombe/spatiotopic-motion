@@ -126,6 +126,9 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
         foilDotPosThis *=-1
         blackDot.pos = (probePos2)
         blackDot.draw()
+    elif probeSecondDisappearance <= n < trialDurFramesTotal:
+        targetDotPosThis *=-1
+        foilDotPosThis *= -1
         
     targetDot.pos= (targetDotPosThis)
     foilDot.pos= (foilDotPosThis)
