@@ -184,10 +184,10 @@ while nDone<= trials.nTotal and not expStop:
         else:
             respFwdBackslash = 1        
         if nDone==1:
-            df= DataFrame({'tilt': [-3], 'respFwdBackslash':[1]})
+            df= DataFrame({'tilt': [-3], 'respFwdBackslash':[1]},
+                                     columns=['tilt','respFwdBackslash']) #specifying the column names just to specify their order
         else:
-            df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
-            print('appended!')
+            df= df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
         print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
         print(df)
         #header print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
@@ -207,6 +207,7 @@ while nDone<= trials.nTotal and not expStop:
         nDone+=1
 
 dataFile.flush(); logging.flush()
+myWin.close()
 
 if expStop:
     print("Experiment stopped because user stopped it.")

@@ -1,6 +1,13 @@
 from pandas import DataFrame
 
-df= DataFrame({'tilt': -3, 'response': 1})
+stimList=[]
+stimList.append({'location': 3, 'startLeft':False, 'upDown': 1, 'tilt': -2, 'jitter': .65})
+
+df= DataFrame({'tilt': [-3], 'respFwdBackslash':[1]}, 
+                            columns=['tilt','respFwdBackslash']) #specifying the column names just to specify their order
+
 print(df)
-df.append(  {'tilt':2,'response':0}, )
+
+df=df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
+
 print(df)
