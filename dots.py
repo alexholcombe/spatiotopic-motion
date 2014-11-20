@@ -7,6 +7,7 @@ from math import atan, cos, sin, pi, sqrt, pow
 import time, colorsys
 import sys, platform, os, StringIO
 from pylink import *
+from pandas import DataFrame
 
 quitFinder = False
 if quitFinder:
@@ -81,21 +82,16 @@ beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),rgb = (-1,-1,-1),alignHoriz=
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
            
-#while True:
-#    targetDot.pos= (x)
-#    foilDot.pos= (y)
-#    targetDot.draw()
-#    foilDot.draw()
-#    myWin.flip()
 locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
 
 stimList=[]
 for location in locationOfProbe: #location of the probe for the trial
     for upDown in [-1,1]: #switching between probe moving top to bottom; and bottom to top
+      for startLeft in [False,True]: 
         for tilt in [-2,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocation = [location[0]+jitter, location[1]]
-                stimList.append({'location': probeLocation, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
+                stimList.append({'location': probeLocation, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
 blockReps = 1
 trials = data.TrialHandler(stimList, blockReps)
@@ -164,21 +160,13 @@ while nDone<= trials.nTotal and not expStop:
         myWin.flip(clearBuffer=True) 
         keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
         if 'escape' in keysPressed:
-            print('User cancelled by pressing <escape>'); core.quit()
-        myWin.clearBuffer()
-    elif nDone == trials.nTotal/2 + 1:
-        beforeTrials.setText("""In this next part of the task, the green dot will appear on the right and jump to the left. Press SPACE to continue.""")
-        beforeTrials.draw()
-        myWin.flip(clearBuffer=True)
-        keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
-        if 'escape' in keysPressed:
-            print('User cancelled by pressing <escape>'); core.quit()
+            print('User cancelled by pressing <escape>'); myWin.close(); core.quit()
         myWin.clearBuffer()
 
-    if nDone<=trials.nTotal/2: 
+    if thisTrial['startLeft']: 
         targetDotPos=np.array([-5,0]) # position of the green and grey stimulus for first half of trials - left to right - this has not been coded in to the data file, may be a good idea to do so
         foilDotPos =np.array([5,0])  
-    else:
+    else: #start on right
         targetDotPos=np.array([5,0])  #position of the green and grey stimulus for second half of trials - right to left
         foilDotPos =np.array([-5,0])
     probePos1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['upDown'])
@@ -192,14 +180,20 @@ while nDone<= trials.nTotal and not expStop:
             expStop=True
     if not expStop:
         if 'left' in keysPressed: #recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
-            respLeftRight = 0
+            respFwdBackslash = 0
         else:
-            respLeftRight = 1
-    
+            respFwdBackslash = 1        
+        if nDone==1:
+            df= DataFrame({'tilt': [-3], 'respFwdBackslash':[1]})
+        else:
+            df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
+            print('appended!')
+        print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
+        print(df)
         #header print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['upDown'] + 
-                                        "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
+                                        "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
         print(oneTrialOfData, file= dataFile) 
         if nDone< trials.nTotal:
             #betweenTrialsText.setText('Press SPACE to continue')
@@ -220,6 +214,7 @@ else:
     print("Experiment finished")
 if  nDone >0:
     print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
+
 
 
 
