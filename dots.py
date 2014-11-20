@@ -184,9 +184,12 @@ while nDone<= trials.nTotal and not expStop:
         else:
             respFwdBackslash = 1        
         if nDone==1:
-            df= DataFrame({'tilt': [-3], 'respFwdBackslash':[1]},
-                                     columns=['tilt','respFwdBackslash']) #specifying the column names just to specify their order
+            df = DataFrame(thisTrial, index=[1],
+                            columns = ['jitter','location','startLeft','tilt','upDown']) #columns included purely to specify their order
+            df['respFwdBackslash'] = respFwdBackslash              
+
         else:
+            
             df= df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
         print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
         print(df)
@@ -194,7 +197,7 @@ while nDone<= trials.nTotal and not expStop:
         oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['upDown'] + 
                                         "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
-        print(oneTrialOfData, file= dataFile) 
+        print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal:
             #betweenTrialsText.setText('Press SPACE to continue')
             betweenTrialsText.draw()

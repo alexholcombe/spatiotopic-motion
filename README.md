@@ -1,4 +1,4 @@
-Szinte & Cavanagh 2011 E2, apparent motion, implemented with [Psychopy](https://github.com/psychopy/psychopy)
+[Szinte & Cavanagh 2011](http://www.journalofvision.org/content/11/2/4.short) E2, apparent motion, implemented with [Psychopy](https://github.com/psychopy/psychopy)
 ============================
 Licensing: MIT license, which is like CC-BY for code.
 
