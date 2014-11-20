@@ -8,9 +8,11 @@ import time, colorsys
 import sys, platform, os, StringIO
 from pylink import *
 
-applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
-shellCmd = 'osascript -e '+applescript
-os.system(shellCmd)
+quitFinder = False
+if quitFinder:
+    applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
+    shellCmd = 'osascript -e '+applescript
+    os.system(shellCmd)
 
 trialClock = core.Clock()
 
@@ -114,25 +116,25 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDotPosThis =  deepcopy(foilDotPos)
     
     twoCycles = oneCycleFrames*2 #First the target dot left->right->left->right to get eye movements in swing of things
-    
-    if n <= initialDur:   #show target and foil only, either because first part of trial
+    cycleFrame = n % oneCycleFrames
+    if cycleFrame <= initialDur:   #show target and foil only, either because first part of trial
         pass #dont draw black dot, dont change positions
-    elif initialDur <= n < probeFirstDisappearance: #show first position of probe
+    elif initialDur <= cycleFrame < probeFirstDisappearance: #show first position of probe
         if n >= twoCycles: #dont draw probe for first two cycles
             blackDot.pos = (probePos1)
             blackDot.draw()
-    elif probeFirstDisappearance <= n < switchCues:  #after probe first disappearance, but before target moves
+    elif probeFirstDisappearance <= cycleFrame < switchCues:  #after probe first disappearance, but before target moves
         pass #dont draw black dot, don't change positions
-    elif switchCues <= n < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
+    elif switchCues <= cycleFrame < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
         targetDotPosThis *=-1
         foilDotPosThis *= -1
-    elif probeSecondAppearance <= n < probeSecondDisappearance: #target and foil, in exchanged positions
+    elif probeSecondAppearance <= cycleFrame < probeSecondDisappearance: #target and foil, in exchanged positions
         targetDotPosThis *=-1
         foilDotPosThis *=-1
         if n >= twoCycles: #dont draw probe for first two cycles
             blackDot.pos = (probePos2)
             blackDot.draw()
-    elif probeSecondDisappearance <= n < trialDurFramesTotal:
+    elif probeSecondDisappearance <= cycleFrame < oneCycleFrames:
         targetDotPosThis *=-1
         foilDotPosThis *= -1
         
@@ -149,7 +151,7 @@ expStop = False
 nDone = 1
 while nDone<= trials.nTotal and not expStop:
     if nDone ==1:
-        beforeTrialsText.setText("In this task you are required to look at the green dot on the screen. Look directly at the green dot, wherever it moves on the screen "
+        beforeTrialsText.setText("In this task you are  to look directly at the green dot, wherever it moves on the screen "
                    "Whilst looking at the green dot, you will see a black dot that will either move upwards or downwards during the "
                    "trial. At the end of the trial you are required to identify whether or not the black dot moved in a clockwise "
                    "or anticlockwise direction. Press the right arrow if its trajectory had the tilt of  a forward slash / \n"
@@ -182,7 +184,7 @@ while nDone<= trials.nTotal and not expStop:
     probePos1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['upDown'])
     probePos2 =([thisTrial['location'][0]-thisTrial['tilt'], probePos1[-1]*-1])
     
-    for n in range(trialDurFramesTotal): #Loop for the trial stimulus
+    for n in range(totFrames): #Loop for the trial stimulus
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
         
     keysPressed = event.waitKeys(maxWait = 120, keyList = ['left','right','escape'], timeStamped = False) #'down' removed
