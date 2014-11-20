@@ -108,6 +108,8 @@ probeSecondAppearance = 1.6*refreshRate # probe returns on the other side of the
 probeSecondDisappearance = 1.7*refreshRate # probe disappears
 
 def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimulus function
+    targetDotPosThis = deepcopy(targetDotPos) #dont change starting value 
+    foilDotPosThis =  deepcopy(foilDotPos)
     
     if n <= initialDur:   #show target and foil only, either because first part of trial
         pass #dont draw black dot, dont change positions
@@ -117,16 +119,16 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     elif probeFirstDisappearance <= n < switchCues:  #after probe first disappearance, but before target moves
         pass #dont draw black dot, don't change positions
     elif switchCues <= n < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
-        targetDotPos*=-1
-        foilDotPos*=-1
+        targetDotPosThis *=-1
+        foilDotPosThis *= -1
         blackDot.pos = (probePos2)
         blackDot.draw()
     elif (probeSecondAppearance <= n < probeSecondDisappearance): #target and foil, in exchanged positions
-        targetDotPos*=-1
-        foilDotPos*=-1
+        targetDotPosThis *=-1
+        foilDotPosThis *=-1
 
-    targetDot.pos= (targetDotPos)
-    foilDot.pos= (foilDotPos)
+    targetDot.pos= (targetDotPosThis)
+    foilDot.pos= (foilDotPosThis)
     targetDot.draw()
     foilDot.draw()
     myWin.flip()
