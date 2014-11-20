@@ -1,6 +1,6 @@
 from __future__ import print_function
 from psychopy import sound, monitors, core, visual, event, data, gui
-from psychopy import logging as ppLog 
+from psychopy import logging
 import numpy as np
 from copy import deepcopy
 from math import atan, cos, sin, pi, sqrt, pow
@@ -12,35 +12,21 @@ applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
 shellCmd = 'osascript -e '+applescript
 os.system(shellCmd)
 
-timeAndDateStr = time.strftime("%d%b%Y_%H-%M", time.localtime()) 
-subject = 'CF-Practice'
-if os.path.isdir('.'+os.sep+'data'):
-    dataDir='data'
-else:
-    print('"data" directory does not exist, so saving data in present working directory')
-    dataDir='.'
-fileName = os.path.join(dataDir, subject+'probeDropTask'+timeAndDateStr)
-dataFile = open(fileName+'.txt', 'w')  # sys.stdout  #StringIO.StringIO()
-saveCodeCmd = 'cp \'' + sys.argv[0] + '\' '+ fileName + '.py'
-os.system(saveCodeCmd)  #save a copy of the code as it was when that subject was run
-logFname = fileName+'.log' 
-ppLogF = ppLog.LogFile(logFname, 
-    filemode='w',#if you set this to 'a' it will append instead of overwriting
-    level=ppLog.INFO)#errors, data and warnings will be sent to this logfile 
 trialClock = core.Clock()
 
 ballStdDev = 0.8
 autoLogging = False
-
-infoFirst = { 'Check refresh etc':False, 'Fullscreen (timing errors if not)': False, 'Screen refresh rate': 60 }
+participant = 'Hubert'
+infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': False, 'Screen refresh rate': 60 }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
-    order=[ 'Check refresh etc', 'Fullscreen (timing errors if not)'], 
+    order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
     tip={'Check refresh etc': 'To confirm refresh rate and that can keep up, at least when drawing a grating'},
     #fixed=['Check refresh etc'])#this attribute can't be changed by the user
     )
 if not OK.OK:
     print('User cancelled from dialog box'); core.quit()
+participant = infoFirst['Participant']
 checkRefreshEtc = infoFirst['Check refresh etc']
 fullscr = infoFirst['Fullscreen (timing errors if not)']
 refreshRate = infoFirst['Screen refresh rate']
@@ -53,6 +39,21 @@ if quitFinder:
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
 
+timeAndDateStr = time.strftime("%d%b%Y_%H-%M", time.localtime()) 
+if os.path.isdir('.'+os.sep+'data'):
+    dataDir='data'
+else:
+    print('"data" directory does not exist, so saving data in present working directory')
+    dataDir='.'
+fileName = os.path.join(dataDir, participant+'_spatiotopicMotion_'+timeAndDateStr)
+dataFile = open(fileName+'.txt', 'w')  # sys.stdout  #StringIO.StringIO()
+saveCodeCmd = 'cp \'' + sys.argv[0] + '\' '+ fileName + '.py'
+os.system(saveCodeCmd)  #save a copy of the code as it was when that subject was run
+logFname = fileName+'.log' 
+ppLogF = logging.LogFile(logFname, 
+    filemode='w',#if you set this to 'a' it will append instead of overwriting
+    level=logging.INFO)#errors, data and warnings will be sent to this logfile 
+    
 fullscr=0 
 scrn=0 #1 means second screen
 widthPix =1024#1024  #monitor width in pixels
@@ -88,11 +89,11 @@ locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #Potential other conditi
 
 stimList=[]
 for location in locationOfProbe: #location of the probe for the trial
-    for downUp in [-1,1]: #switching between probe moving top to bottom; and bottom to top
+    for upDown in [-1,1]: #switching between probe moving top to bottom; and bottom to top
         for tilt in [-2,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocation = [location[0]+jitter, location[1]]
-                stimList.append({'location': probeLocation, 'downUp': downUp, 'tilt': tilt, 'jitter': jitter})
+                stimList.append({'location': probeLocation, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
 
 blockReps = 1
@@ -136,8 +137,8 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tlocation\tdownUp\tTilt\tJitter\tDirection\t', file=dataFile)
-#print >>dataFile2, 'trialnum\tsubject\tlocation\tdownUp\tTilt\tDirection\t'
+print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
+#print >>dataFile2, 'trialnum\tsubject\tlocation\tupDown\tTilt\tDirection\t'
 
 expStop = False
 nDone = 1
@@ -173,7 +174,7 @@ while nDone<= trials.nTotal and not expStop:
     else:
         targetDotPos=np.array([5,0])  #position of the green and grey stimulus for second half of trials - right to left
         foilDotPos =np.array([-5,0])
-    probePos1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['downUp'])
+    probePos1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['upDown'])
     probePos2 =([thisTrial['location'][0]-thisTrial['tilt'], probePos1[-1]*-1])
     
     for n in range(trialDurFramesTotal): #Loop for the trial stimulus
@@ -188,9 +189,9 @@ while nDone<= trials.nTotal and not expStop:
         else:
             respLeftRight = 1
     
-        #header print('trialnum\tsubject\tlocation\tdownUp\tTilt\tJitter\tDirection\t', file=dataFile)
+        #header print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
-        oneTrialOfData = (str(nDone)+'\t'+subject+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['downUp'] + 
+        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['upDown'] + 
                                         "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
         print(oneTrialOfData, file= dataFile) 
         if nDone< trials.nTotal:
@@ -204,12 +205,14 @@ while nDone<= trials.nTotal and not expStop:
             myWin.clearBuffer()
         nDone+=1
 
+dataFile.flush(); logging.flush()
+
 if expStop:
-    print("Experiment stopped because user cancelled")
+    print("Experiment stopped because user stopped it.")
 else: 
     print("Experiment finished")
 if  nDone >0:
-    print('Of ',nDone,' trials, on ',3, '% of all trials all targets reported exactly correct',sep='')
+    print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
 
 
 
