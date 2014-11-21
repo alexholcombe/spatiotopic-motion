@@ -183,14 +183,16 @@ while nDone<= trials.nTotal and not expStop:
             respFwdBackslash = 0
         else:
             respFwdBackslash = 1        
-        if nDone==1:
+        if nDone==1: #initiate results dataframe
             df = DataFrame(thisTrial, index=[1],
                             columns = ['jitter','location','startLeft','tilt','upDown']) #columns included purely to specify their order
             df['respFwdBackslash'] = respFwdBackslash              
-
-        else:
-            
-            df= df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
+        else: #add this trial
+            thisTrial = trials.next()
+            df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index
+            df['respFwdBackslash'][1]=0.0
+            print(df)
+            #df= df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
         print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
         print(df)
         #header print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
@@ -218,8 +220,3 @@ else:
     print("Experiment finished")
 if  nDone >0:
     print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
-
-
-
-
-    
