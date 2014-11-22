@@ -100,12 +100,11 @@ trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
 #durations in frames
-initialDur = round(0.6*refreshRate) #target and foil dot without probe for the first 600 ms
-trialWithProbe = round(1.0*refreshRate) #probe appears for 400 ms
-probeFirstDisappearance = round(1.1*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
-switchCues = round(1.2*refreshRate) # target and foil dots switch positions for 100 ms
-probeSecondAppearance = round(1.3*refreshRate) # probe returns on the other side of the horizontal meridian for 400 ms
-probeSecondDisappearance = round(1.7*refreshRate) # probe disappears
+initialDur = round(0.1*refreshRate) #target and foil dot without probe for the first 600 ms
+probeFirstDisappearance = round(0.5*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
+switchCues = round(0.6*refreshRate) # target and foil dots switch positions for 100 ms
+probeSecondAppearance = round(0.7*refreshRate) # probe returns on the other side of the horizontal meridian for 400 ms
+probeSecondDisappearance = round(1.1*refreshRate) # probe disappears
 oneCycleFrames = int( round( probeSecondDisappearance + 0.1*refreshRate ) )
 totFrames = oneCycleFrames*3
 
@@ -123,10 +122,10 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
             blackDot.draw()
     elif probeFirstDisappearance <= cycleFrame < switchCues:  #after probe first disappearance, but before target moves
         pass #dont draw black dot, don't change positions
-    elif switchCues <= cycleFrame < probeSecondAppearance: #target and foil in exchanged positions, probe in new location
+    elif switchCues <= cycleFrame < probeSecondAppearance: #target and foil in exchanged positions
         targetDotPosThis *=-1
         foilDotPosThis *= -1
-    elif probeSecondAppearance <= cycleFrame < probeSecondDisappearance: #target and foil, in exchanged positions
+    elif probeSecondAppearance <= cycleFrame < probeSecondDisappearance: #target and foil, in exchanged positions, probe in new location
         targetDotPosThis *=-1
         foilDotPosThis *=-1
         if n >= twoCycles: #dont draw probe for first two cycles
@@ -231,5 +230,5 @@ groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but witho
 tiltsTested = list(groupMeans.index)
 pResp = list(groupMeans['respFwdBackslash'])  #x.iloc[:]
 ns = grouped.sum() #want n per trial to scale data point size
-ns = list(ns['resp'])
+ns = list(ns['respFwdBackslash'])
 print('df mean at each tilt\n'); print(  DataFrame({'tilt': tiltsTested, 'pResp': pResp, 'n': ns })   )
