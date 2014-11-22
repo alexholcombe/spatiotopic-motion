@@ -143,7 +143,7 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tprobeX\tprobeY\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
+print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
 
 expStop = False
 nDone = 1
@@ -191,18 +191,17 @@ while nDone<= trials.nTotal and not expStop:
         else:
             respFwdBackslash = 1        
         if nDone==1: #initiate results dataframe
-            print(thisTrial) 
+            print(thisTrial)  #deubgON
             df = DataFrame(thisTrial, index=[1],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             df['respFwdBackslash'] = respFwdBackslash              
         else: #add this trial
-            thisTrial = trials.next()
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index
             df['respFwdBackslash'][1]=respFwdBackslash
             print(df)
         #print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
         print(df)
-        #header print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
+        #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
                                     "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
