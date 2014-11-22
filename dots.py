@@ -82,16 +82,18 @@ beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),rgb = (-1,-1,-1),alignHoriz=
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
            
-locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
+locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
+#Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
 
 stimList=[]
-for location in locationOfProbe: #location of the probe for the trial
+for locus in locationOfProbe: #location of the probe for the trial
+    probeLocationY = locus[1]
     for upDown in [-1,1]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
         for tilt in [-2,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
-                probeLocation = [location[0]+jitter, location[1]]
-                stimList.append({'location': probeLocation, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
+                probeLocationX = locus[0]+jitter
+                stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
 blockReps = 1
 trials = data.TrialHandler(stimList, blockReps)
@@ -140,8 +142,7 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
-#print >>dataFile2, 'trialnum\tsubject\tlocation\tupDown\tTilt\tDirection\t'
+print('trialnum\tsubject\tprobeX\tprobeY\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
 
 expStop = False
 nDone = 1
@@ -169,8 +170,8 @@ while nDone<= trials.nTotal and not expStop:
     else: #start on right
         targetDotPos=np.array([5,0])  #position of the green and grey stimulus for second half of trials - right to left
         foilDotPos =np.array([-5,0])
-    probePos1= (thisTrial['location'][0]+thisTrial['tilt'], thisTrial['location'][1]*thisTrial['upDown'])
-    probePos2 =([thisTrial['location'][0]-thisTrial['tilt'], probePos1[-1]*-1])
+    probePos1= (thisTrial['probeX']+thisTrial['tilt'],      thisTrial['probeY']*thisTrial['upDown'])
+    probePos2 =([thisTrial['probeX']-thisTrial['tilt'],     probePos1[1]*-1]) #y of second location is simply vertical reflection of position 1
     
     for n in range(totFrames): #Loop for the trial stimulus
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
@@ -184,21 +185,21 @@ while nDone<= trials.nTotal and not expStop:
         else:
             respFwdBackslash = 1        
         if nDone==1: #initiate results dataframe
+            print(thisTrial) 
             df = DataFrame(thisTrial, index=[1],
-                            columns = ['jitter','location','startLeft','tilt','upDown']) #columns included purely to specify their order
+                            columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             df['respFwdBackslash'] = respFwdBackslash              
         else: #add this trial
             thisTrial = trials.next()
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index
-            df['respFwdBackslash'][1]=0.0
+            df['respFwdBackslash'][1]=respFwdBackslash
             print(df)
-            #df= df.append(  {'tilt':2,'respFwdBackslash':0}, ignore_index=True )
-        print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
+        #print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
         print(df)
         #header print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
-        oneTrialOfData= "%2.2f\t"%thisTrial['location'][0]
-        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['location'][0] +"%r\t"%thisTrial['upDown'] + 
-                                        "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
+        #Should be able to print from the dataFrame in csv format
+        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] +
+                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal:
             #betweenTrialsText.setText('Press SPACE to continue')
@@ -220,3 +221,15 @@ else:
     print("Experiment finished")
 if  nDone >0:
     print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
+
+#Use pandas to calculate proportion correct at each level
+#The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
+df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
+
+grouped = df.groupby('tilt')
+groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
+tiltsTested = list(groupMeans.index)
+pResp = list(groupMeans['respFwdBackslash'])  #x.iloc[:]
+ns = grouped.sum() #want n per trial to scale data point size
+ns = list(ns['resp'])
+print('df mean at each tilt\n'); print(  DataFrame({'tilt': tiltsTested, 'pResp': pResp, 'n': ns })   )
