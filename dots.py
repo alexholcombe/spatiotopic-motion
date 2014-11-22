@@ -8,7 +8,7 @@ import time, colorsys
 import sys, platform, os, StringIO
 from pylink import *
 from pandas import DataFrame
-
+autopilot = True
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -41,7 +41,9 @@ if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'"
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
-
+respDeadline = 100
+if autopilot:
+    respDeadline = 0.1
 timeAndDateStr = time.strftime("%d%b%Y_%H-%M", time.localtime()) 
 if os.path.isdir('.'+os.sep+'data'):
     dataDir='data'
@@ -163,7 +165,7 @@ while nDone<= trials.nTotal and not expStop:
             print('User cancelled by pressing <escape>'); myWin.close(); core.quit()
         myWin.clearBuffer()
 
-    if thisTrial['startLeft']: 
+    if thisTrial['startLeft']:
         targetDotPos=np.array([-5,0]) # position of the green and grey stimulus for first half of trials - left to right - this has not been coded in to the data file, may be a good idea to do so
         foilDotPos =np.array([5,0])  
     else: #start on right
@@ -174,8 +176,13 @@ while nDone<= trials.nTotal and not expStop:
     
     for n in range(totFrames): #Loop for the trial stimulus
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
+    
+    keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
+    if keysPressed is None:
+        keysPressed = ['-99'] #because otherwise testing what's in it gives error
+    if autopilot and ('escape' not in keysPressed): #optionally person can press key, like esc to abort
+        keysPressed = ['left']
         
-    keysPressed = event.waitKeys(maxWait = 120, keyList = ['left','right','escape'], timeStamped = False) #'down' removed
     if 'escape' in keysPressed:
             expStop=True
     if not expStop:
@@ -197,14 +204,17 @@ while nDone<= trials.nTotal and not expStop:
         print(df)
         #header print('trialnum\tsubject\tlocation\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
-        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] +
+        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
                                     "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal:
-            #betweenTrialsText.setText('Press SPACE to continue')
             betweenTrialsText.draw()
             myWin.flip(clearBuffer=True) 
-            keysPressedBetweenTrials = event.waitKeys(maxWait = 120, keyList = ['space'], timeStamped = False)
+            keysPressedBetweenTrials = event.waitKeys(maxWait = respDeadline, keyList = ['space','escape'], timeStamped = False)
+            if keysPressedBetweenTrials is None:
+                keysPressedBetweenTrials = ['-99'] #because otherwise testing what's in it gives not-iterable error
+            if autopilot and ('escape' not in keysPressedBetweenTrials): # ( keysPressedBetweenTrials is None):
+                keysPressedBetweenTrials = ['space']
             if 'escape' in keysPressedBetweenTrials:
                     expStop=True
             thisTrial=trials.next()
