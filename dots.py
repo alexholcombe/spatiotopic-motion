@@ -8,7 +8,7 @@ import time, colorsys
 import sys, platform, os, StringIO
 from pylink import *
 from pandas import DataFrame
-autopilot = True
+autopilot = False
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -159,10 +159,11 @@ while nDone < trials.nTotal and not expStop:
         respPromptText.draw()
         betweenTrialsText.setText('Press SPACE to continue')
         betweenTrialsText.draw()
-        myWin.flip(clearBuffer=True) 
-        keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
-        if 'escape' in keysPressed:
-            print('User cancelled by pressing <escape>'); myWin.close(); core.quit()
+        myWin.flip(clearBuffer=True)
+        if not autopilot:
+            keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
+            if 'escape' in keysPressed:
+                print('User cancelled by pressing <escape>'); myWin.close(); core.quit()
         myWin.clearBuffer()
 
     if thisTrial['startLeft']:
@@ -246,6 +247,9 @@ tiltsTested = list(groupMeans.index)
 print('tiltsTested=',tiltsTested)
 pRespFwdBackslash = list(groupMeans['respFwdBackslash'])  #x.iloc[:]
 ns = grouped.sum() #want n per trial to scale data point size
-print('ns=',ns)
+print('ns=\n',ns)
 ns = list(ns['respFwdBackslash'])
-print('df mean at each tilt\n'); print(  DataFrame({'tilt': tiltsTested, 'pRespFwdBackslash': pRespFwdBackslash, 'n': ns })   )
+print('df mean at each tilt')
+print(  DataFrame({'tilt': tiltsTested, 'pRespFwdBackslash': pRespFwdBackslash, 'n': ns },
+                                 columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
+         )
