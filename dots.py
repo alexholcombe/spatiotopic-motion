@@ -84,7 +84,7 @@ beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),rgb = (-1,-1,-1),alignHoriz=
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
            
-locationOfProbe= np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
+locationOfProbe= np.array([[-10,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
 
 stimList=[]
@@ -143,12 +143,12 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
+print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespFwdBackslash', file=dataFile)
 
 expStop = False
-nDone = 1
-while nDone<= trials.nTotal and not expStop:
-    if nDone ==1:
+nDone = 0
+while nDone < trials.nTotal and not expStop:
+    if nDone ==0:
         beforeTrialsText.setText("In this task you are  to look directly at the green dot, wherever it moves on the screen "
                    "Whilst looking at the green dot, you will see a black dot that will either move upwards or downwards during the "
                    "trial. At the end of the trial you are required to identify whether or not the black dot moved in a clockwise "
@@ -181,7 +181,7 @@ while nDone<= trials.nTotal and not expStop:
     if keysPressed is None:
         keysPressed = ['-99'] #because otherwise testing what's in it gives error
     if autopilot and ('escape' not in keysPressed): #optionally person can press key, like esc to abort
-        keysPressed = ['left']
+        keysPressed = ['right']
         
     if 'escape' in keysPressed:
             expStop=True
@@ -190,23 +190,23 @@ while nDone<= trials.nTotal and not expStop:
             respFwdBackslash = 0
         else:
             respFwdBackslash = 1        
-        if nDone==1: #initiate results dataframe
+        if nDone==0: #initiate results dataframe
             print(thisTrial)  #deubgON
-            df = DataFrame(thisTrial, index=[1],
+            df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             df['respFwdBackslash'] = respFwdBackslash              
         else: #add this trial
-            df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index
-            df['respFwdBackslash'][1]=respFwdBackslash
+            df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
+            df['respFwdBackslash'][nDone] = respFwdBackslash
             print(df)
         #print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
-        print(df)
+        #print(df.loc[nDone]) #this is how you pick out a row. Technically, index with value nDone
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
                                     "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
         print(oneTrialOfData, file= dataFile)
-        if nDone< trials.nTotal:
+        if nDone< trials.nTotal-1:
             betweenTrialsText.draw()
             myWin.flip(clearBuffer=True) 
             keysPressedBetweenTrials = event.waitKeys(maxWait = respDeadline, keyList = ['space','escape'], timeStamped = False)
@@ -228,6 +228,12 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
+#    neutralStimIdxs = df.loc[df.loc['tilt']==0]
+#    print('neutralStimIdxs=',neutralStimIdxs)
+#    df['underOvercorrected'] = -99
+#    underOver = (df[neutralStimIdxs,'startLeft']*2-1) * (df[neutralStimIdxs,'respFwdBackslash']*2-1)
+#    print('underOver=',underOver)
+#    df[neutralStimIdxs,'underOverCorrected'] = underOver
     print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
 
 #Use pandas to calculate proportion correct at each level
@@ -237,7 +243,9 @@ df = df.convert_objects(convert_numeric=True) #convert dtypes from object to num
 grouped = df.groupby('tilt')
 groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
 tiltsTested = list(groupMeans.index)
-pResp = list(groupMeans['respFwdBackslash'])  #x.iloc[:]
+print('tiltsTested=',tiltsTested)
+pRespFwdBackslash = list(groupMeans['respFwdBackslash'])  #x.iloc[:]
 ns = grouped.sum() #want n per trial to scale data point size
+print('ns=',ns)
 ns = list(ns['respFwdBackslash'])
-print('df mean at each tilt\n'); print(  DataFrame({'tilt': tiltsTested, 'pResp': pResp, 'n': ns })   )
+print('df mean at each tilt\n'); print(  DataFrame({'tilt': tiltsTested, 'pRespFwdBackslash': pRespFwdBackslash, 'n': ns })   )
