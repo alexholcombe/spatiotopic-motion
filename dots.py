@@ -74,15 +74,15 @@ units = 'deg'
 
 mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch the most recent calib for this monitor
 mon.setSizePix( (widthPix,heightPix) )
-myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,rgb=bgColor,fullscr=fullscr,screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
-
+myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,
+                                       colorSpace='rgb',color=bgColor,fullscr=fullscr,screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
 targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0, 1),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 
-beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
-respPromptText = visual.TextStim(myWin,pos=(0, -.3),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
-betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),rgb = (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
+beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
+respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
+betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
            
 locationOfProbe= np.array([[-10,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
@@ -239,17 +239,18 @@ if  nDone >0:
 
 #Use pandas to calculate proportion correct at each level
 #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
+print('df.dtypes=\n',df.dtypes)
 df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
-
+print('df.dtypes=\n',df.dtypes)
 grouped = df.groupby('tilt')
+ns = grouped.sum() #want n per trial to scale data point size
+ns = list(ns['respFwdBackslash'])
+print('ns per tilt=\n',ns)
+print('df mean at each tilt')
 groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
 tiltsTested = list(groupMeans.index)
 print('tiltsTested=',tiltsTested)
 pRespFwdBackslash = list(groupMeans['respFwdBackslash'])  #x.iloc[:]
-ns = grouped.sum() #want n per trial to scale data point size
-print('ns=\n',ns)
-ns = list(ns['respFwdBackslash'])
-print('df mean at each tilt')
 print(  DataFrame({'tilt': tiltsTested, 'pRespFwdBackslash': pRespFwdBackslash, 'n': ns },
                                  columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
          )
