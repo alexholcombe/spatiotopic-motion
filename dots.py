@@ -229,28 +229,35 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
-#    neutralStimIdxs = df.loc[df.loc['tilt']==0]
-#    print('neutralStimIdxs=',neutralStimIdxs)
-#    df['underOvercorrected'] = -99
-#    underOver = (df[neutralStimIdxs,'startLeft']*2-1) * (df[neutralStimIdxs,'respFwdBackslash']*2-1)
-#    print('underOver=',underOver)
-#    df[neutralStimIdxs,'underOverCorrected'] = underOver
-    print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
 
-#Use pandas to calculate proportion correct at each level
-#The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
-print('df.dtypes=\n',df.dtypes)
-df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
-print('df.dtypes=\n',df.dtypes)
-grouped = df.groupby('tilt')
-ns = grouped.sum() #want n per trial to scale data point size
-ns = list(ns['respFwdBackslash'])
-print('ns per tilt=\n',ns)
-print('df mean at each tilt')
-groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
-tiltsTested = list(groupMeans.index)
-print('tiltsTested=',tiltsTested)
-pRespFwdBackslash = list(groupMeans['respFwdBackslash'])  #x.iloc[:]
-print(  DataFrame({'tilt': tiltsTested, 'pRespFwdBackslash': pRespFwdBackslash, 'n': ns },
-                                 columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
-         )
+
+    #Use pandas to calculate proportion correct at each level
+    #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
+    print('df.dtypes=\n',df.dtypes)
+    df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
+    print('df.dtypes=\n',df.dtypes)
+    grouped = df.groupby('tilt')
+    ns = grouped.sum() #want n per trial to scale data point size
+    ns = list(ns['respFwdBackslash'])
+    print('ns per tilt=\n',ns)
+    print('df mean at each tilt')
+    groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
+    tiltsTested = list(groupMeans.index)
+    print('tiltsTested=',tiltsTested)
+    print('groupMeans=\n',groupMeans)
+    print("groupMeans['respFwdBackslash']=\n",groupMeans['respFwdBackslash'])
+    print("list=\n",list(groupMeans['respFwdBackslash']))
+    pRespFB = list(groupMeans['respFwdBackslash'])  
+    print(  DataFrame({'tilt': tiltsTested, 'pRespFB': pRespFB, 'n': ns },
+                                     columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
+             )
+    #calculate whether under- or over-correcting
+    
+    tilt = df.loc[:,'tilt']
+    neutralStimIdxs = df.loc[df.loc['tilt']==0]
+    print('neutralStimIdxs=',neutralStimIdxs)
+    df['underOvercorrected'] = -99
+    underOver = (df[neutralStimIdxs,'startLeft']*2-1) * (df[neutralStimIdxs,'respFwdBackslash']*2-1)
+    print('underOver=',underOver)
+    df[neutralStimIdxs,'underOverCorrected'] = underOver
+    print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
