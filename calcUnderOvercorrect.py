@@ -1,3 +1,4 @@
+from __future__ import print_function
 from pandas import DataFrame
 
 #calculate whether under- or over-correcting
@@ -33,7 +34,7 @@ df = DataFrame(data , #index=[nDone],
                             columns = ['tilt','startLeft','upDown','respFwdBackslash']) #columns included purely to specify their order
 #forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
 
-underCorrected = underOverCorrected(df.loc[1])
+underCorrected = underOverCorrected(df.loc[0])
 print('underCorrected=',underCorrected)
 #underOverCorrected(df)
 #forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
