@@ -14,27 +14,22 @@ def underOverCorrected(df):
     startLeft = df['startLeft']
     upDown = df['upDown']
     respFwdBackslash= df['respFwdBackslash']
-    if respFwdBackslash: #for canonical case. backslash means overcorrect
-        underCorrect = False
-    else:
-        underCorrect = True #fwdslash means undercorrect
-    #any departure from canonical case inverts the answer
-    if not startLeft: #otherwise-canonical case gives backslash
-        underCorrect = not underCorrect
-    if not upDown:
-        underCorrect = not underCorrect
-    
-    underCorrect = underCorrect 
-    #print('startLeft*2=',startLeft*2)
-    #ans= startLeft*2-1 * upDown*2-1 * respFwdBackslash
+    underCorrect = ~ respFwdBackslash #tilde is bitwise NOT have to use it to apply operation to each element
+    #for canonical case. backslash means overcorrect, fwdslash means undercorrect
+    #any departure from canonical case inverts the answer. Use XOR (^) to invert conditional on another boolean.
+    startLeft_not_canonical = ~ startLeft #startLeft = True is canonical case. So, flip otherwise
+    underCorrect = underCorrect ^ startLeft_not_canonical
+    upDown_not_canonical = ~ upDown #otherwise-canonical case gives backslash
+    underCorrect =  underCorrect ^ upDown_not_canonical
     return underCorrect
 
-data = {'tilt': [0,0], 'startLeft':[True, True], 'upDown':[True, True], 'respFwdBackslash':[False,True]}
+data = {'tilt': [0,0,-2,-2], 'startLeft':[True, True,True,True], 'upDown':[True, True,True,False], 'respFwdBackslash':[False,True,True,True]}
 df = DataFrame(data , #index=[nDone],
                             columns = ['tilt','startLeft','upDown','respFwdBackslash']) #columns included purely to specify their order
 #forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
-
 underCorrected = underOverCorrected(df.loc[0])
 print('underCorrected=',underCorrected)
-#underOverCorrected(df)
+underCorrected = underOverCorrected(df)
+print('underCorrected=\n',underCorrected)
+
 #forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
