@@ -2,7 +2,7 @@
 ============================
 Licensing: MIT license, which is like CC-BY for code.
 
-Jedi-Jr. Chris Fajou programmed initial version in late October 2014. Thank you Chris!
+Jedi~~-Jr.~~ Master Chris Fajou programmed initial version in late October 2014. Thank you Chris!
 
 ##Szinte & Cavanagh stimulus details
 "gray background", luminance not specified.
