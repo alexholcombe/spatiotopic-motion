@@ -10,8 +10,9 @@ def underOverCorrected(df):
     #    2
     #If you undercorrect, /  fwdSlash
     #startLeft mean target moves to right? So upDown undercorrect would be fwdslash
-    startLeft = df.loc['startLeft']
-    upDown = df.loc['upDown']
+    startLeft = df['startLeft']
+    upDown = df['upDown']
+    respFwdBackslash= df['respFwdBackslash']
     if respFwdBackslash: #for canonical case. backslash means overcorrect
         underCorrect = False
     else:
@@ -22,14 +23,17 @@ def underOverCorrected(df):
     if not upDown:
         underCorrect = not underCorrect
     
-    respFwdBackslash= df.loc['respFwdBackslash']
     underCorrect = underCorrect 
     #print('startLeft*2=',startLeft*2)
     #ans= startLeft*2-1 * upDown*2-1 * respFwdBackslash
-    return ans
+    return underCorrect
 
-DataFrame
-data = {'tilt': [0,0]
-df = DataFrame({'tilt': , index=[nDone],
-                            columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
-forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
+data = {'tilt': [0,0], 'startLeft':[True, True], 'upDown':[True, True], 'respFwdBackslash':[False,True]}
+df = DataFrame(data , #index=[nDone],
+                            columns = ['tilt','startLeft','upDown','respFwdBackslash']) #columns included purely to specify their order
+#forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
+
+underCorrected = underOverCorrected(df.loc[1])
+print('underCorrected=',underCorrected)
+#underOverCorrected(df)
+#forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
