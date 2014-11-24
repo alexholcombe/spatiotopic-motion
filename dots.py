@@ -174,9 +174,12 @@ while nDone < trials.nTotal and not expStop:
     probePos1= (thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*thisTrial['upDown'])
     probePos2 =([thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1]) #y of second location is simply vertical reflection of position 1
     
-    for n in range(totFrames): #Loop for the trial stimulus
+    for n in range(totFrames): #Loop for the trial STIMULUS
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
-    
+    core.wait(.1)
+    respPromptText.setPos([0,-.5]) #low down so doesnt interfere with apparent motion
+    respPromptText.draw()
+    myWin.flip(clearBuffer=True) 
     keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
     if keysPressed is None:
         keysPressed = ['-99'] #because otherwise testing what's in it gives error
@@ -207,8 +210,6 @@ while nDone < trials.nTotal and not expStop:
                                     "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
-            betweenTrialsText.draw()
-            myWin.flip(clearBuffer=True) 
             keysPressedBetweenTrials = event.waitKeys(maxWait = respDeadline, keyList = ['space','escape'], timeStamped = False)
             if keysPressedBetweenTrials is None:
                 keysPressedBetweenTrials = ['-99'] #because otherwise testing what's in it gives not-iterable error
@@ -254,17 +255,28 @@ if  nDone >0:
     def underOverCorrected(df):
         #Expect dataframes with fields tilt, startLeft, upDown, respFwdBackslash
         #Actually only can give legitimate answer when tilt is 0, because only that is an ambiguous stimulus
-        #canonical case is startLeft, upDown, tilt positive
+        #canonical case is startLeft, upDown, tilt 0
         #    1
         #A     B
         #    2
         #If you undercorrect, /  fwdSlash
-        #Tilt positive mean second position to left? So upDown would be fwdslash
+        #startLeft mean target moves to right? So upDown undercorrect would be fwdslash
         startLeft = df.loc['startLeft']
         upDown = df.loc['upDown']
+        if respFwdBackslash: #for canonical case. backslash means overcorrect
+            underCorrect = False
+        else:
+            underCorrect = True #fwdslash means undercorrect
+        #any departure from canonical case inverts the answer
+        if not startLeft: #otherwise-canonical case gives backslash
+            underCorrect = not underCorrect
+        if not upDown:
+            underCorrect = not underCorrect
+        
         respFwdBackslash= df.loc['respFwdBackslash']
-        print('startLeft*2=',startLeft*2)
-        ans= startLeft*2-1 * upDown*2-1 * respFwdBackslash
+        underCorrect = underCorrect 
+        #print('startLeft*2=',startLeft*2)
+        #ans= startLeft*2-1 * upDown*2-1 * respFwdBackslash
         return ans
         
     tilt = df.loc[:,'tilt']
@@ -273,7 +285,6 @@ if  nDone >0:
     print('neutralStimIdxs=',neutralStimIdxs)
     if  neutralStimIdxs.any():
         forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
-        print('theStuff: startLeft upDown respFwdBackslash=\n',theStuff)
         underOver = underOverCorrected( forCalculatn )
         print('underOver=',underOver)
         df[neutralStimIdxs,'underOver'] = underOver
