@@ -251,14 +251,19 @@ if  nDone >0:
                                      columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
              )
     #calculate whether under- or over-correcting
-    def underOverCorrected(tilt, startLeft, upDown, respFwdBackslash):
+    def underOverCorrected(df):
+        #Expect dataframes with fields tilt, startLeft, upDown, respFwdBackslash
+        #Actually only can give legitimate answer when tilt is 0, because only that is an ambiguous stimulus
         #canonical case is startLeft, upDown, tilt positive
         #    1
         #A     B
         #    2
         #If you undercorrect, /  fwdSlash
         #Tilt positive mean second position to left? So upDown would be fwdslash
-
+        startLeft = df.loc['startLeft']
+        upDown = df.loc['upDown']
+        respFwdBackslash= df.loc['respFwdBackslash']
+        print('startLeft*2=',startLeft*2)
         ans= startLeft*2-1 * upDown*2-1 * respFwdBackslash
         return ans
         
@@ -267,11 +272,9 @@ if  nDone >0:
     neutralStimIdxs = (tilt==0)
     print('neutralStimIdxs=',neutralStimIdxs)
     if  neutralStimIdxs.any():
-        theStuff = df.loc[neutralStimIdxs, ['startLeft','upDown','respFwdBackslash']]
+        forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
         print('theStuff: startLeft upDown respFwdBackslash=\n',theStuff)
-        underOver = underOverCorrected( tilt, df.loc[neutralStimIdxs,'startLeft'], df.loc[neutralStimIdxs,'upDown'], df.loc[neutralStimIdxs,'respFwdBackslash'])
-        df['underOvercorrected'] = -99
-        underOver = (df[neutralStimIdxs,'startLeft']*2-1) * (df[neutralStimIdxs,'respFwdBackslash']*2-1)
+        underOver = underOverCorrected( forCalculatn )
         print('underOver=',underOver)
-        df[neutralStimIdxs,'underOverCorrected'] = underOver
+        df[neutralStimIdxs,'underOver'] = underOver
         print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
