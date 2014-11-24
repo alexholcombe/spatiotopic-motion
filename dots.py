@@ -4,8 +4,7 @@ from psychopy import logging
 import numpy as np
 from copy import deepcopy
 from math import atan, cos, sin, pi, sqrt, pow
-import time, colorsys
-import sys, platform, os, StringIO
+import time, sys, platform, os, StringIO
 from pylink import *
 from pandas import DataFrame
 autopilot = False
@@ -92,7 +91,7 @@ for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [-1,1]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        for tilt in [-2,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted
+        for tilt in [0,2]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
@@ -167,13 +166,13 @@ while nDone < trials.nTotal and not expStop:
         myWin.clearBuffer()
 
     if thisTrial['startLeft']:
-        targetDotPos=np.array([-5,0]) # position of the green and grey stimulus for first half of trials - left to right - this has not been coded in to the data file, may be a good idea to do so
+        targetDotPos=np.array([-5,0]) #target of saccades starts on left. 
         foilDotPos =np.array([5,0])  
-    else: #start on right
+    else: #target starts on right
         targetDotPos=np.array([5,0])  #position of the green and grey stimulus for second half of trials - right to left
         foilDotPos =np.array([-5,0])
-    probePos1= (thisTrial['probeX']+thisTrial['tilt'],      thisTrial['probeY']*thisTrial['upDown'])
-    probePos2 =([thisTrial['probeX']-thisTrial['tilt'],     probePos1[1]*-1]) #y of second location is simply vertical reflection of position 1
+    probePos1= (thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*thisTrial['upDown'])
+    probePos2 =([thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1]) #y of second location is simply vertical reflection of position 1
     
     for n in range(totFrames): #Loop for the trial stimulus
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
@@ -252,12 +251,27 @@ if  nDone >0:
                                      columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
              )
     #calculate whether under- or over-correcting
-    
+    def underOverCorrected(tilt, startLeft, upDown, respFwdBackslash):
+        #canonical case is startLeft, upDown, tilt positive
+        #    1
+        #A     B
+        #    2
+        #If you undercorrect, /  fwdSlash
+        #Tilt positive mean second position to left? So upDown would be fwdslash
+
+        ans= startLeft*2-1 * upDown*2-1 * respFwdBackslash
+        return ans
+        
     tilt = df.loc[:,'tilt']
-    neutralStimIdxs = df.loc[df.loc['tilt']==0]
+    neutralStimIdxs = df.loc[tilt==0]
+    neutralStimIdxs = (tilt==0)
     print('neutralStimIdxs=',neutralStimIdxs)
-    df['underOvercorrected'] = -99
-    underOver = (df[neutralStimIdxs,'startLeft']*2-1) * (df[neutralStimIdxs,'respFwdBackslash']*2-1)
-    print('underOver=',underOver)
-    df[neutralStimIdxs,'underOverCorrected'] = underOver
-    print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
+    if  neutralStimIdxs.any():
+        theStuff = df.loc[neutralStimIdxs, ['startLeft','upDown','respFwdBackslash']]
+        print('theStuff: startLeft upDown respFwdBackslash=\n',theStuff)
+        underOver = underOverCorrected( tilt, df.loc[neutralStimIdxs,'startLeft'], df.loc[neutralStimIdxs,'upDown'], df.loc[neutralStimIdxs,'respFwdBackslash'])
+        df['underOvercorrected'] = -99
+        underOver = (df[neutralStimIdxs,'startLeft']*2-1) * (df[neutralStimIdxs,'respFwdBackslash']*2-1)
+        print('underOver=',underOver)
+        df[neutralStimIdxs,'underOverCorrected'] = underOver
+        print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
