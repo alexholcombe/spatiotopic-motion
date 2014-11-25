@@ -230,11 +230,12 @@ else:
 if  nDone >0:
     #Use pandas to calculate proportion correct at each level
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
+    print('df.dtypes=\n',df.dtypes)
+    df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
     grouped = df.groupby('tilt')
     ns = grouped.sum() #want n per trial to scale data point size
     ns = list(ns['respFwdBackslash'])
     print('ns per tilt=\n',ns)
-    print('df mean at each tilt')
     groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
     tiltsTested = list(groupMeans.index)
     print('tiltsTested=',tiltsTested)
@@ -249,7 +250,7 @@ if  nDone >0:
     tilt = df.loc[:,'tilt']
     neutralStimIdxs = df.loc[tilt==0]
     neutralStimIdxs = (tilt==0)
-    print('neutralStimIdxs=',neutralStimIdxs)
+    print('neutralStimIdxs=\n',neutralStimIdxs)
     if  neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
         forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
         underOver = calcOverCorrected( forCalculatn )
