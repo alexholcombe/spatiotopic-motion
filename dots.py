@@ -5,9 +5,8 @@ import numpy as np
 from copy import deepcopy
 from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
-from pylink import *
 from pandas import DataFrame
-autopilot = False
+autopilot = True
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -229,13 +228,8 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
-
-
     #Use pandas to calculate proportion correct at each level
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
-    print('df.dtypes=\n',df.dtypes)
-    df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
-    print('df.dtypes=\n',df.dtypes)
     grouped = df.groupby('tilt')
     ns = grouped.sum() #want n per trial to scale data point size
     ns = list(ns['respFwdBackslash'])
@@ -244,7 +238,7 @@ if  nDone >0:
     groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
     tiltsTested = list(groupMeans.index)
     print('tiltsTested=',tiltsTested)
-    print('groupMeans=\n',groupMeans)
+    #print('groupMeans=\n',groupMeans)
     print("groupMeans['respFwdBackslash']=\n",groupMeans['respFwdBackslash'])
     print("list=\n",list(groupMeans['respFwdBackslash']))
     pRespFB = list(groupMeans['respFwdBackslash'])  
@@ -256,16 +250,20 @@ if  nDone >0:
     neutralStimIdxs = df.loc[tilt==0]
     neutralStimIdxs = (tilt==0)
     print('neutralStimIdxs=',neutralStimIdxs)
-    if  neutralStimIdxs.any():
+    if  neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
         forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
-        underOver = underOverCorrected( forCalculatn )
+        underOver = calcOverCorrected( forCalculatn )
         print('underOver=\n',underOver)
         df['overCorrected']= np.nan
         df.loc[neutralStimIdxs, ['overCorrected']] = overCorrected
         print('dataframe with answer added=\n',df)
         #Summarise under over correct
-        print('For 0 tilt, overcorrection responses=', df['respFwdBackslash'].mean(),
-                  'proportion of ', )
-
-        df[neutralStimIdxs,'underOver'] = underOver
-        print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
+        print('For 0 tilt, overcorrection responses=', df['overCorrected'].mean(),
+                  'proportion of ', df['overCorrected'].count())
+        #Calculate mean for each factor level
+        zeroTiltOnly = df[neutralStimIdxs,:]
+        startLeft = zeroTiltOnly.groupby('startLeft')
+        print('Summary of startLeft\n',startLeft.mean())
+        upDown= zeroTiltOnly.groupby('upDown')
+        print('Summary of upDown\n',upDown.mean())
+        #        stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
