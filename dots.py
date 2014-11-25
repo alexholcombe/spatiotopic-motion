@@ -6,15 +6,14 @@ from copy import deepcopy
 from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
 from pandas import DataFrame
+from calcUnderOvercorrect import calcOverCorrected
 autopilot = True
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
-
 trialClock = core.Clock()
-
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
@@ -251,12 +250,13 @@ if  nDone >0:
     neutralStimIdxs = df.loc[tilt==0]
     neutralStimIdxs = (tilt==0)
     print('neutralStimIdxs=\n',neutralStimIdxs)
-    if  neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
+    print('neutralStimIdxs.any()=',neutralStimIdxs.any())
+    if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
         forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
-        underOver = calcOverCorrected( forCalculatn )
-        print('underOver=\n',underOver)
+        overCorrected = calcOverCorrected( forCalculatn )
+        print('overCorrected=\n',overCorrected)
         df['overCorrected']= np.nan
-        df.loc[neutralStimIdxs, ['overCorrected']] = overCorrected
+        df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
         print('dataframe with answer added=\n',df)
         #Summarise under over correct
         print('For 0 tilt, overcorrection responses=', df['overCorrected'].mean(),
