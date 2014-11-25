@@ -23,14 +23,14 @@ def calcOverCorrected(df):
     overCorrected =  overCorrected ^ upDown_not_canonical
     return overCorrected
 
-data = {'tilt': [0,0,-2,-2], 'startLeft':[True, True,True,True], 'upDown':[True, True,True,False], 'respFwdBackslash':[False,True,True,True]}
+data = {'tilt': [0,0,-2,-2,0], 'startLeft':[True, True,True,True,False], 'upDown':[True, True,True,False,1], 'respFwdBackslash':[False,True,True,True,1]}
 df = DataFrame(data , #index=[nDone],
                             columns = ['tilt','startLeft','upDown','respFwdBackslash']) #columns included purely to specify their order
 #forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
 
 #test with single record
-overCorrected = calcOverCorrected(df.loc[0])
-print('overCorrected=',overCorrected)
+overCorrected = calcOverCorrected(df.loc[4])
+print('single record\n ',df.loc[4],'overCorrected=',overCorrected)
 #test with multiple records
 overCorrected = calcOverCorrected(df)
 print('overCorrected=\n',overCorrected)
