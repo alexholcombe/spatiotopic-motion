@@ -169,7 +169,10 @@ while nDone < trials.nTotal and not expStop:
     else: #target starts on right
         targetDotPos=np.array([5,0])  #position of the green and grey stimulus for second half of trials - right to left
         foilDotPos =np.array([-5,0])
-    probePos1= (thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*thisTrial['upDown'])
+    yMultiplier = thisTrial['upDown']
+    if not thisTrial['upDown']:
+        yMultiplier = -1
+    probePos1= (thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*yMultiplier])
     probePos2 =([thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1]) #y of second location is simply vertical reflection of position 1
     
     for n in range(totFrames): #Loop for the trial STIMULUS
