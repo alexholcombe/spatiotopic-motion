@@ -27,9 +27,17 @@ data = {'tilt': [0,0,-2,-2], 'startLeft':[True, True,True,True], 'upDown':[True,
 df = DataFrame(data , #index=[nDone],
                             columns = ['tilt','startLeft','upDown','respFwdBackslash']) #columns included purely to specify their order
 #forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
+
+#test with single record
 underCorrected = underOverCorrected(df.loc[0])
 print('underCorrected=',underCorrected)
+#test with multiple records
 underCorrected = underOverCorrected(df)
 print('underCorrected=\n',underCorrected)
 
-#forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
+print('test with subset of records for which tilt==0')
+tilt = df.loc[:,'tilt']
+neutralStimIdxs = (tilt==0)
+print( df.loc[neutralStimIdxs,:] )
+underCorrected = underOverCorrected( df.loc[neutralStimIdxs, :] )
+print('neutralStimIdxs underCorrected=\n',underCorrected)
