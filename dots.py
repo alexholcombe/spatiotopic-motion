@@ -87,7 +87,7 @@ locationOfProbe= np.array([[-10,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]])
 stimList=[]
 for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
-    for upDown in [-1,1]: #switching between probe moving top to bottom; and bottom to top
+    for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
         for tilt in [0,2]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe

@@ -11,19 +11,26 @@ def calcOverCorrected(df):
     #    2
     #If you undercorrect, /  fwdSlash
     #startLeft mean target moves to right? So upDown undercorrect would be fwdslash
-    startLeft = df['startLeft']
-    upDown = df['upDown']
-    respFwdBackslash= df['respFwdBackslash']
-    overCorrected =  respFwdBackslash #tilde is bitwise NOT have to use it to apply operation to each element
+    if df.ndim==1:
+        anyObjectsInThere = df[['upDown','startLeft']].dtype == 'object' #dtype for series
+    elif df.ndim==2:
+        anyObjectsInThere = (df[['upDown','startLeft']].dtypes == 'object').any() #dtypes for dataframe
+
+    if anyObjectsInThere:
+        print('ERROR: calcOverCorrected expects relevant columns to not be objects but instead something interpretable as boolean')
+    startLeft = np.array( df['startLeft'] ) #make it a numpy array so can use its elementwise logical operators
+    upDown = np.array( df['upDown'] )
+    respFwdBackslash= np.array( df['respFwdBackslash'] )
+    overCorrected = respFwdBackslash #tilde is bitwise NOT have to use it to apply operation to each element
     #for canonical case. backslash means overcorrect, fwdslash means undercorrect
     #any departure from canonical case inverts the answer. Use XOR (^) to invert conditional on another boolean.
-    startLeft_not_canonical = ~ startLeft #startLeft = True is canonical case. So, flip otherwise
-    overCorrected = overCorrected ^ startLeft_not_canonical
-    upDown_not_canonical = ~ upDown #otherwise-canonical case gives backslash
-    overCorrected =  overCorrected ^ upDown_not_canonical
+    startLeft_not_canonical = np.logical_not( startLeft ) #startLeft = True is canonical case. So, flip otherwise
+    overCorrected = np.logical_xor( overCorrected, startLeft_not_canonical )
+    upDown_not_canonical = np.logical_not( upDown )#otherwise-canonical case gives backslash
+    overCorrected =  np.logical_xor( overCorrected, upDown_not_canonical )
     return overCorrected
 
-data = {'tilt': [0,0,-2,-2,0], 'startLeft':[True, True,True,True,False], 'upDown':[True, True,True,False,1], 'respFwdBackslash':[False,True,True,True,1]}
+data = {'tilt': [0,0,-2,-2,0], 'startLeft':[True, True,True,True,False], 'upDown':[True, True,True,False,False], 'respFwdBackslash':[False,True,True,True,False]}
 df = DataFrame(data , #index=[nDone],
                             columns = ['tilt','startLeft','upDown','respFwdBackslash']) #columns included purely to specify their order
 #forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
