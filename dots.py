@@ -251,33 +251,6 @@ if  nDone >0:
     print(  DataFrame({'tilt': tiltsTested, 'pRespFB': pRespFB, 'n': ns },
                                      columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
              )
-    #calculate whether under- or over-correcting
-    def underOverCorrected(df):
-        #Expect dataframes with fields tilt, startLeft, upDown, respFwdBackslash
-        #Actually only can give legitimate answer when tilt is 0, because only that is an ambiguous stimulus
-        #canonical case is startLeft, upDown, tilt 0
-        #    1
-        #A     B
-        #    2
-        #If you undercorrect, /  fwdSlash
-        #startLeft mean target moves to right? So upDown undercorrect would be fwdslash
-        startLeft = df.loc['startLeft']
-        upDown = df.loc['upDown']
-        if respFwdBackslash: #for canonical case. backslash means overcorrect
-            underCorrect = False
-        else:
-            underCorrect = True #fwdslash means undercorrect
-        #any departure from canonical case inverts the answer
-        if not startLeft: #otherwise-canonical case gives backslash
-            underCorrect = not underCorrect
-        if not upDown:
-            underCorrect = not underCorrect
-        
-        respFwdBackslash= df.loc['respFwdBackslash']
-        underCorrect = underCorrect 
-        #print('startLeft*2=',startLeft*2)
-        #ans= startLeft*2-1 * upDown*2-1 * respFwdBackslash
-        return ans
         
     tilt = df.loc[:,'tilt']
     neutralStimIdxs = df.loc[tilt==0]
@@ -286,6 +259,13 @@ if  nDone >0:
     if  neutralStimIdxs.any():
         forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
         underOver = underOverCorrected( forCalculatn )
-        print('underOver=',underOver)
+        print('underOver=\n',underOver)
+        df['overCorrected']= np.nan
+        df.loc[neutralStimIdxs, ['overCorrected']] = overCorrected
+        print('dataframe with answer added=\n',df)
+        #Summarise under over correct
+        print('For 0 tilt, overcorrection responses=', df['respFwdBackslash'].mean(),
+                  'proportion of ', )
+
         df[neutralStimIdxs,'underOver'] = underOver
         print('Of ',nDone,' trials, on ',-99, '% of all trials all targets reported exactly correct.',sep='')
