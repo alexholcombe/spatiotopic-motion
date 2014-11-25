@@ -172,8 +172,8 @@ while nDone < trials.nTotal and not expStop:
     yMultiplier = thisTrial['upDown']
     if not thisTrial['upDown']:
         yMultiplier = -1
-    probePos1= (thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*yMultiplier])
-    probePos2 =([thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1]) #y of second location is simply vertical reflection of position 1
+    probePos1= [ thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*yMultiplier ]
+    probePos2 =[ thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1 ] #y of second location is simply vertical reflection of position 1
     
     for n in range(totFrames): #Loop for the trial STIMULUS
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
@@ -262,10 +262,10 @@ if  nDone >0:
         df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
         print('dataframe with answer added=\n',df)
         #Summarise under over correct
-        print('For 0 tilt, overcorrection responses=', df['overCorrected'].mean(),
-                  'proportion of ', df['overCorrected'].count())
+        print('For 0 tilt, overcorrection responses=', 100*df['overCorrected'].mean(),
+                  '%', df['overCorrected'].count())
         #Calculate mean for each factor level
-        zeroTiltOnly = df[neutralStimIdxs,:]
+        zeroTiltOnly = df.loc[neutralStimIdxs,:]
         startLeft = zeroTiltOnly.groupby('startLeft')
         print('Summary of startLeft\n',startLeft.mean())
         upDown= zeroTiltOnly.groupby('upDown')
