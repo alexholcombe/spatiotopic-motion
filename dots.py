@@ -282,7 +282,7 @@ while nDone < trials.nTotal and not expStop:
         else: #add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             df['respLeftRight'][nDone] = respLeftRight
-            print(df.loc[nDone]) #debugON
+            print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
@@ -315,7 +315,7 @@ else:
 if  nDone >0:
     #Use pandas to calculate proportion correct at each level
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
-    print('df.dtypes=\n',df.dtypes)
+    #print('df.dtypes=\n',df.dtypes)
     df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
         
     tilt = df.loc[:,'tilt']
@@ -330,7 +330,7 @@ if  nDone >0:
         print('overCorrected=\n',overCorrected)
         df['overCorrected']= np.nan
         df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
-        print('dataframe with answer added=\n',df)
+        #print('dataframe with answer added=\n',df) #debug
         #Summarise under over correct
         print('For 0 tilt, overcorrection responses=', round( 100*df['overCorrected'].mean(), 2),
                   '% of ', df['overCorrected'].count(), ' trials', sep='')
