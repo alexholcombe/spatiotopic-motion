@@ -1,6 +1,5 @@
 from __future__ import print_function
-from psychopy import sound, monitors, core, visual, event, data, gui
-from psychopy import logging
+from psychopy import sound, monitors, core, visual, event, data, gui, logging, info
 import numpy as np
 from copy import deepcopy
 from math import atan, cos, sin, pi, sqrt, pow
@@ -18,7 +17,7 @@ ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
 fullscr=False 
-infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
+infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -39,6 +38,7 @@ if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'"
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
+demo=False
 respDeadline = 100
 if autopilot:
     respDeadline = 0.1
@@ -64,21 +64,25 @@ monitorwidth = 40. #28.5 #monitor width in centimeters
 viewdist = 57.; #cm
 pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
 bgColor = [0,0,0] #"gray background"
-monitorname = 'mitsubishi' #in psychopy Monitors Center
 allowGUI = False
 waitBlank = False
 units = 'deg'
-
+monitorname = 'mitsubishi' #in psychopy Monitors Center #Holcombe lab monitor
 mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch the most recent calib for this monitor
 mon.setSizePix( (widthPix,heightPix) )
-myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,
-                                       colorSpace='rgb',color=bgColor,fullscr=fullscr,screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
+def openMyStimWindow(): #make it a function because have to do it several times, want to be sure is identical each time
+    myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,color=bgColor,colorSpace='rgb',fullscr=fullscr,
+                                            screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
+    return myWin
+myWin = openMyStimWindow()
+myWin.recordFrameIntervals = True #required by RunTimeInfo?
 
+refreshMsg2 = ''
 if not checkRefreshEtc:
     refreshMsg1 = 'REFRESH RATE WAS NOT CHECKED'
     refreshRateWrong = False
 else: #checkRefreshEtc
-    runInfo = psychopy.info.RunTimeInfo(
+    runInfo = info.RunTimeInfo(
             # if you specify author and version here, it overrides the automatic detection of __author__ and __version__ in your script
             #author='<your name goes here, plus whatever you like, e.g., your lab or contact info>',
             #version="<your experiment version info>",
@@ -90,17 +94,16 @@ else: #checkRefreshEtc
     #print(runInfo)
     logging.info(runInfo)
     print('Finished runInfo- which assesses the refresh and processes of this computer')
-        windowRefreshTimeSD_ms: 2.969
 
     refreshSDwarningLevel_ms = 3 ##ms
     if runInfo["windowRefreshTimeSD_ms"] > refreshSDwarningLevel_ms:
-        print "\nThe variability of the refresh rate is sort of high (SD > %.2f ms)." % (refreshSDwarningLevel_ms)
+        print("\nThe variability of the refresh rate is high (SD > %.2f ms)." % (refreshSDwarningLevel_ms))
         ## and here you could prompt the user with suggestions, possibly based on other info:
         if runInfo["windowIsFullScr"]: 
-            print "Your window is full-screen, which is good for timing."
-            print 'Possible issues: internet / wireless? bluetooth? recent startup (not finished)?'
+            print("Your window is full-screen, which is good for timing.")
+            print('Possible issues: internet / wireless? bluetooth? recent startup (not finished)?')
             if len(runInfo['systemUserProcFlagged']):
-                print 'other programs running? (command, process-ID):',info['systemUserProcFlagged']
+                print('other programs running? (command, process-ID):',info['systemUserProcFlagged'])
                 
     medianHz = 1000./runInfo['windowRefreshTimeMedian_ms']
     refreshMsg1= 'Median frames per second ~='+ str( np.round(medianHz,1) )
@@ -116,6 +119,31 @@ else: #checkRefreshEtc
     myWinRes = myWin.size
     myWin.allowGUI =True
 myWin.close() #have to close window to show dialog box
+
+myDlg = gui.Dlg(title="Screen check", pos=(200,400))
+myDlg.addText(refreshMsg1, color='Black')
+if refreshRateWrong:
+    myDlg.addText(refreshMsg2, color='Red')
+if refreshRateWrong:
+    logging.error(refreshMsg1+refreshMsg2)
+else: logging.info(refreshMsg1+refreshMsg2)
+
+if checkRefreshEtc and (not demo) and (myWinRes != [widthPix,heightPix]).any():
+    msgWrongResolution = 'Screen apparently NOT the desired resolution of '+ str(widthPix)+'x'+str(heightPix)+ ' pixels!!'
+    myDlg.addText(msgWrongResolution, color='Red')
+    logging.error(msgWrongResolution)
+    print(msgWrongResolution)
+myDlg.addText('Note: to abort press ESC at a trials response screen', color=[-1.,1.,-1.]) # color='DimGrey') color names stopped working along the way, for unknown reason
+myDlg.show()
+if myDlg.OK: #unpack information from dialogue box
+    pass
+else: 
+   print('User cancelled from dialog box.')
+   logging.flush()
+   core.quit()
+if not demo: 
+    allowGUI = False
+myWin = openMyStimWindow()
 
 targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0, 1),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
