@@ -346,4 +346,5 @@ if  nDone >0:
         print('Summary of startLeft\n',startLeft.mean())
         upDown= zeroTiltOnly.groupby('upDown')
         print('Summary of upDown\n',upDown.mean())
-        #        stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
+        tilt= df.groupby('tilt')
+        print('Summary of tilt\n',upDown.mean())
