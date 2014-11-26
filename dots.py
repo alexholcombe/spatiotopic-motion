@@ -212,18 +212,19 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespFwdBackslash', file=dataFile)
+print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespLeftRight', file=dataFile)
 
 expStop = False
 nDone = 0
 while nDone < trials.nTotal and not expStop:
     if nDone ==0:
-        beforeTrialsText.setText("In this task you are  to look directly at the green dot, wherever it moves on the screen "
-                   "Whilst looking at the green dot, you will see a black dot that will either move upwards or downwards during the "
-                   "trial. At the end of the trial you are required to identify whether or not the black dot moved in a clockwise "
-                   "or anticlockwise direction. Press the right arrow if its trajectory had the tilt of  a forward slash / \n"
-                   "and the left arrow if it had the tilt of a backslash \ ")
-        respPromptText.setText("anticlockwise \                          clockwise /      ")
+        beforeTrialsText.setText("In this task you are to look directly at the green dot, wherever it moves on the screen. "
+                   "Keep looking at the green dot, but attend to the black dot that will either move upwards or downwards during the "
+                   "trial. At the end of the trial you are required to identify whether the black dot moved (slightly) to the left "
+                   "or the right. Mostly it will have jumped vertically but with a slight left or right offset. "
+                   "Press the left arrow for left, \n"
+                   "or the right arrow for right ")
+        respPromptText.setText("<---- left                            right ---->")
         beforeTrialsText.draw()
         respPromptText.draw()
         betweenTrialsText.setText('Press SPACE to continue')
@@ -263,24 +264,24 @@ while nDone < trials.nTotal and not expStop:
             expStop=True
     if not expStop:
         if 'left' in keysPressed: #recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
-            respFwdBackslash = 0
+            respLeftRight = 0
         else:
-            respFwdBackslash = 1        
+            respLeftRight = 1        
         if nDone==0: #initiate results dataframe
             print(thisTrial)  #deubgON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
-            df['respFwdBackslash'] = respFwdBackslash              
+            df['respLeftRight'] = respLeftRight              
         else: #add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
-            df['respFwdBackslash'][nDone] = respFwdBackslash
+            df['respLeftRight'][nDone] = respLeftRight
             print(df)
-        #print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respFwdBackslash=',respFwdBackslash)
+        #print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respLeftRight=',respLeftRight)
         #print(df.loc[nDone]) #this is how you pick out a row. Technically, index with value nDone
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
-                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
+                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
             betweenTrialsText.draw()
@@ -310,15 +311,15 @@ if  nDone >0:
     df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
     grouped = df.groupby('tilt')
     ns = grouped.sum() #want n per trial to scale data point size
-    ns = list(ns['respFwdBackslash'])
+    ns = list(ns['respLeftRight'])
     print('ns per tilt=\n',ns)
     groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
     tiltsTested = list(groupMeans.index)
     print('tiltsTested=',tiltsTested)
     #print('groupMeans=\n',groupMeans)
-    print("groupMeans['respFwdBackslash']=\n",groupMeans['respFwdBackslash'])
-    print("list=\n",list(groupMeans['respFwdBackslash']))
-    pRespFB = list(groupMeans['respFwdBackslash'])  
+    print("groupMeans['respLeftRight']=\n",groupMeans['respLeftRight'])
+    print("list=\n",list(groupMeans['respLeftRight']))
+    pRespFB = list(groupMeans['respLeftRight'])  
     print(  DataFrame({'tilt': tiltsTested, 'pRespFB': pRespFB, 'n': ns },
                                      columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
              )
@@ -330,7 +331,7 @@ if  nDone >0:
     #print('neutralStimIdxs.any()=',neutralStimIdxs.any())
     if len(neutralStimIdxs)>1:
       if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
-        forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
+        forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respLeftRight']]
         overCorrected = calcOverCorrected( forCalculatn )
         print('overCorrected=\n',overCorrected)
         df['overCorrected']= np.nan
