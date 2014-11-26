@@ -17,7 +17,8 @@ trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
-infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': False, 'Screen refresh rate': 60 }
+fullscr=False 
+infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -56,7 +57,6 @@ ppLogF = logging.LogFile(logFname,
     filemode='w',#if you set this to 'a' it will append instead of overwriting
     level=logging.INFO)#errors, data and warnings will be sent to this logfile 
     
-fullscr=0 
 scrn=0 #1 means second screen
 widthPix =1024#1024  #monitor width in pixels
 heightPix =768#768  #monitor height in pixels
@@ -73,6 +73,50 @@ mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch 
 mon.setSizePix( (widthPix,heightPix) )
 myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,
                                        colorSpace='rgb',color=bgColor,fullscr=fullscr,screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
+
+if not checkRefreshEtc:
+    refreshMsg1 = 'REFRESH RATE WAS NOT CHECKED'
+    refreshRateWrong = False
+else: #checkRefreshEtc
+    runInfo = psychopy.info.RunTimeInfo(
+            # if you specify author and version here, it overrides the automatic detection of __author__ and __version__ in your script
+            #author='<your name goes here, plus whatever you like, e.g., your lab or contact info>',
+            #version="<your experiment version info>",
+            win=myWin,    ## a psychopy.visual.Window() instance; None = default temp window used; False = no win, no win.flips()
+            refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
+            verbose=True, ## True means report on everything 
+            userProcsDetailed=True  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
+            )
+    #print(runInfo)
+    logging.info(runInfo)
+    print('Finished runInfo- which assesses the refresh and processes of this computer')
+        windowRefreshTimeSD_ms: 2.969
+
+    refreshSDwarningLevel_ms = 3 ##ms
+    if runInfo["windowRefreshTimeSD_ms"] > refreshSDwarningLevel_ms:
+        print "\nThe variability of the refresh rate is sort of high (SD > %.2f ms)." % (refreshSDwarningLevel_ms)
+        ## and here you could prompt the user with suggestions, possibly based on other info:
+        if runInfo["windowIsFullScr"]: 
+            print "Your window is full-screen, which is good for timing."
+            print 'Possible issues: internet / wireless? bluetooth? recent startup (not finished)?'
+            if len(runInfo['systemUserProcFlagged']):
+                print 'other programs running? (command, process-ID):',info['systemUserProcFlagged']
+                
+    medianHz = 1000./runInfo['windowRefreshTimeMedian_ms']
+    refreshMsg1= 'Median frames per second ~='+ str( np.round(medianHz,1) )
+    refreshRateTolerancePct = 3
+    pctOff = abs( (medianHz-refreshRate) / refreshRate )
+    refreshRateWrong =  pctOff > (refreshRateTolerancePct/100.)
+    if refreshRateWrong:
+        refreshMsg1 += ' BUT'
+        refreshMsg1 += ' program assumes ' + str(refreshRate)
+        refreshMsg2 =  'which is off by more than' + str(round(refreshRateTolerancePct,0)) + '%!!'
+    else:
+        refreshMsg1 += ', which is close enough to desired val of ' + str( round(refreshRate,1) )
+    myWinRes = myWin.size
+    myWin.allowGUI =True
+myWin.close() #have to close window to show dialog box
+
 targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0, 1),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
@@ -252,9 +296,10 @@ if  nDone >0:
     tilt = df.loc[:,'tilt']
     neutralStimIdxs = df.loc[tilt==0]
     neutralStimIdxs = (tilt==0)
-    print('neutralStimIdxs=\n',neutralStimIdxs)
-    print('neutralStimIdxs.any()=',neutralStimIdxs.any())
-    if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
+    #print('neutralStimIdxs=\n',neutralStimIdxs)
+    #print('neutralStimIdxs.any()=',neutralStimIdxs.any())
+    if len(neutralStimIdxs)>1:
+      if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
         forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respFwdBackslash']]
         overCorrected = calcOverCorrected( forCalculatn )
         print('overCorrected=\n',overCorrected)
