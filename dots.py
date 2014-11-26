@@ -78,46 +78,52 @@ myWin = openMyStimWindow()
 myWin.recordFrameIntervals = True #required by RunTimeInfo?
 
 refreshMsg2 = ''
+refreshRateWrong = False
 if not checkRefreshEtc:
     refreshMsg1 = 'REFRESH RATE WAS NOT CHECKED'
-    refreshRateWrong = False
 else: #checkRefreshEtc
-    runInfo = info.RunTimeInfo(
-            # if you specify author and version here, it overrides the automatic detection of __author__ and __version__ in your script
-            #author='<your name goes here, plus whatever you like, e.g., your lab or contact info>',
-            #version="<your experiment version info>",
-            win=myWin,    ## a psychopy.visual.Window() instance; None = default temp window used; False = no win, no win.flips()
-            refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
-            verbose=True, ## True means report on everything 
-            userProcsDetailed=True  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
-            )
+    try:
+        runInfo = info.RunTimeInfo(
+                # if you specify author and version here, it overrides the automatic detection of __author__ and __version__ in your script
+                #author='<your name goes here, plus whatever you like, e.g., your lab or contact info>',
+                #version="<your experiment version info>",
+                win=myWin,    ## a psychopy.visual.Window() instance; None = default temp window used; False = no win, no win.flips()
+                refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
+                verbose=True, ## True means report on everything 
+                userProcsDetailed=False  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
+                                        #seems to require internet access, probably for process lookup
+                )
     #print(runInfo)
-    logging.info(runInfo)
-    print('Finished runInfo- which assesses the refresh and processes of this computer')
-
-    refreshSDwarningLevel_ms = 3 ##ms
-    if runInfo["windowRefreshTimeSD_ms"] > refreshSDwarningLevel_ms:
-        print("\nThe variability of the refresh rate is high (SD > %.2f ms)." % (refreshSDwarningLevel_ms))
-        ## and here you could prompt the user with suggestions, possibly based on other info:
-        if runInfo["windowIsFullScr"]: 
-            print("Your window is full-screen, which is good for timing.")
-            print('Possible issues: internet / wireless? bluetooth? recent startup (not finished)?')
-            if len(runInfo['systemUserProcFlagged']):
-                print('other programs running? (command, process-ID):',info['systemUserProcFlagged'])
-                
-    medianHz = 1000./runInfo['windowRefreshTimeMedian_ms']
-    refreshMsg1= 'Median frames per second ~='+ str( np.round(medianHz,1) )
-    refreshRateTolerancePct = 3
-    pctOff = abs( (medianHz-refreshRate) / refreshRate )
-    refreshRateWrong =  pctOff > (refreshRateTolerancePct/100.)
-    if refreshRateWrong:
-        refreshMsg1 += ' BUT'
-        refreshMsg1 += ' program assumes ' + str(refreshRate)
-        refreshMsg2 =  'which is off by more than' + str(round(refreshRateTolerancePct,0)) + '%!!'
-    else:
-        refreshMsg1 += ', which is close enough to desired val of ' + str( round(refreshRate,1) )
-    myWinRes = myWin.size
-    myWin.allowGUI =True
+        logging.info(runInfo)
+        print('Finished runInfo- which assesses the refresh and processes of this computer')
+        runInfo_failed = False
+    except:
+        runInfo_failed = True
+        refreshMsg1 = ' runInfo call FAILED so dont know refresh rate'
+    if not runInfo_failed:
+            refreshSDwarningLevel_ms = 3 ##ms
+            if runInfo["windowRefreshTimeSD_ms"] > refreshSDwarningLevel_ms:
+                print("\nThe variability of the refresh rate is high (SD > %.2f ms)." % (refreshSDwarningLevel_ms))
+                ## and here you could prompt the user with suggestions, possibly based on other info:
+                if runInfo["windowIsFullScr"]: 
+                    print("Your window is full-screen, which is good for timing.")
+                    print('Possible issues: internet / wireless? bluetooth? recent startup (not finished)?')
+                    if len(runInfo['systemUserProcFlagged']):
+                        print('other programs running? (command, process-ID):',info['systemUserProcFlagged'])
+                        
+            medianHz = 1000./runInfo['windowRefreshTimeMedian_ms']
+            refreshMsg1= 'Median frames per second ~='+ str( np.round(medianHz,1) )
+            refreshRateTolerancePct = 3
+            pctOff = abs( (medianHz-refreshRate) / refreshRate )
+            refreshRateWrong =  pctOff > (refreshRateTolerancePct/100.)
+            if refreshRateWrong:
+                refreshMsg1 += ' BUT'
+                refreshMsg1 += ' program assumes ' + str(refreshRate)
+                refreshMsg2 =  'which is off by more than' + str(round(refreshRateTolerancePct,0)) + '%!!'
+            else:
+                refreshMsg1 += ', which is close enough to desired val of ' + str( round(refreshRate,1) )
+            myWinRes = myWin.size
+            myWin.allowGUI =True
 myWin.close() #have to close window to show dialog box
 
 myDlg = gui.Dlg(title="Screen check", pos=(200,400))
@@ -151,9 +157,10 @@ blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1
 
 beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
-betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', units='norm',autoLog=autoLogging)
-           
-locationOfProbe= np.array([[-10,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
+betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center',height=.03,units='norm',autoLog=autoLogging)
+NextRemindCountText = visual.TextStim(myWin,pos=(0,-.6),colorSpace='rgb',color= (1,1,1),alignHoriz='center', alignVert='center',height=.05,units='norm',autoLog=autoLogging)
+
+locationOfProbe= np.array([[0,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
 
 stimList=[]
@@ -275,9 +282,7 @@ while nDone < trials.nTotal and not expStop:
         else: #add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             df['respLeftRight'][nDone] = respLeftRight
-            print(df)
-        #print('startLeft=',thisTrial['startLeft'], 'tilt = ', thisTrial['tilt'], 'respLeftRight=',respLeftRight)
-        #print(df.loc[nDone]) #this is how you pick out a row. Technically, index with value nDone
+            print(df.loc[nDone]) #debugON
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
@@ -285,6 +290,9 @@ while nDone < trials.nTotal and not expStop:
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
             betweenTrialsText.draw()
+            progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
+            NextRemindCountText.setText(progressMsg)
+            NextRemindCountText.draw()
             myWin.flip(clearBuffer=True)
             keysPressedBetweenTrials = event.waitKeys(maxWait = respDeadline, keyList = ['space','escape'], timeStamped = False)
             if keysPressedBetweenTrials is None:
@@ -309,20 +317,6 @@ if  nDone >0:
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
     print('df.dtypes=\n',df.dtypes)
     df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
-    grouped = df.groupby('tilt')
-    ns = grouped.sum() #want n per trial to scale data point size
-    ns = list(ns['respLeftRight'])
-    print('ns per tilt=\n',ns)
-    groupMeans= grouped.mean() #a groupBy object, kind of like a DataFrame but without column names, only an index?
-    tiltsTested = list(groupMeans.index)
-    print('tiltsTested=',tiltsTested)
-    #print('groupMeans=\n',groupMeans)
-    print("groupMeans['respLeftRight']=\n",groupMeans['respLeftRight'])
-    print("list=\n",list(groupMeans['respLeftRight']))
-    pRespFB = list(groupMeans['respLeftRight'])  
-    print(  DataFrame({'tilt': tiltsTested, 'pRespFB': pRespFB, 'n': ns },
-                                     columns = ['tilt','n','pRespFB']) #columns included purely to specify their order
-             )
         
     tilt = df.loc[:,'tilt']
     neutralStimIdxs = df.loc[tilt==0]
@@ -346,5 +340,7 @@ if  nDone >0:
         print('Summary of startLeft\n',startLeft.mean())
         upDown= zeroTiltOnly.groupby('upDown')
         print('Summary of upDown\n',upDown.mean())
-        tilt= df.groupby('tilt')
-        print('Summary of tilt\n',upDown.mean())
+    tiltGrp= df.groupby('tilt')
+    ns = tiltGrp.sum() #want n per trial to scale data point size
+    ns = list(ns['respLeftRight'])
+    print('Summary of tilt\n',tiltGrp.mean())
