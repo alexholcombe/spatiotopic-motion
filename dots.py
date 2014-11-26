@@ -6,7 +6,7 @@ from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
-autopilot = True
+autopilot = False
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -161,7 +161,7 @@ for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        for tilt in [0,2]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
+        for tilt in [-2,0,2]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
@@ -283,6 +283,8 @@ while nDone < trials.nTotal and not expStop:
                                     "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respFwdBackslash)
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
+            betweenTrialsText.draw()
+            myWin.flip(clearBuffer=True)
             keysPressedBetweenTrials = event.waitKeys(maxWait = respDeadline, keyList = ['space','escape'], timeStamped = False)
             if keysPressedBetweenTrials is None:
                 keysPressedBetweenTrials = ['-99'] #because otherwise testing what's in it gives not-iterable error
@@ -335,8 +337,8 @@ if  nDone >0:
         df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
         print('dataframe with answer added=\n',df)
         #Summarise under over correct
-        print('For 0 tilt, overcorrection responses=', 100*df['overCorrected'].mean(),
-                  '%', df['overCorrected'].count())
+        print('For 0 tilt, overcorrection responses=', round( 100*df['overCorrected'].mean(), 2),
+                  '% of ', df['overCorrected'].count(), ' trials', sep='')
         #Calculate mean for each factor level
         zeroTiltOnly = df.loc[neutralStimIdxs,:]
         startLeft = zeroTiltOnly.groupby('startLeft')
