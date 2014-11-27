@@ -22,6 +22,7 @@ mon.setSizePix( (widthPix,heightPix) )
 myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,color=bgColor,colorSpace='rgb',fullscr=fullscr,
                                             screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
                                             
+mouseLocatnTextPixels = visual.TextStim(myWin,pos=(-.6,-.4),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.06,units='norm',autoLog=autoLogging)
 mouseLocatnTextAlex = visual.TextStim(myWin,pos=(-.8,-.6),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.06,units='norm',autoLog=autoLogging)
 mouseLocatnTextPp = visual.TextStim(myWin,pos=(-.8,-.8),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.06,units='norm',autoLog=autoLogging)
 
@@ -30,8 +31,10 @@ locationOfProbe= np.array([0,4])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left
 #Im supposed to use the built-in logging function, should be able to get everything out of that
 myMouse = event.Mouse(visible = 'true',win=myWin)
 
-blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
-mouseLocationMarker = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
+blackDot = visual.Circle(myWin,mask='circle',units=units,size=ballStdDev,autoLog=autoLogging)
+blackDot.colorSpace = 'rgb'
+blackDot.color = (-1,-1,-1)
+mouseLocationMarker = visual.Circle(myWin,mask='circle',colorSpace='rgb',color = (-1,-1,1),units='pix',size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 notClicked = True
 
 cmperpixel = monitorwidth*1.0/widthPix
@@ -57,11 +60,14 @@ while notClicked: #collecting response
     distanceAlex = sqrt(pow((locationOfProbe[0]-m_x_degAlex),2)+pow((locationOfProbe[1]-m_y_degAlex),2))
     distancePp = sqrt(pow((locationOfProbe[0]-m_x_degPp),2)+pow((locationOfProbe[1]-m_y_degPp),2))
 
-    #deg2cm(degrees, monitor[, correctFlat])	
+    #deg2cm(degrees, monitor[, correctFlat])
     mouseLocationMarker.setPos((m_x_pix, m_y_pix))
-    mouseLocatnMsgAlex = 'dist='+ str(round(distanceAlex,2))+ 'mouse x=' + str(round(m_x_degAlex,2)) + ' y=' + str(round(m_y_degAlex,2)) + ' deg Alex'
+    #mouseLocationMarker.setPos((m_x_degPp, m_y_degPp))
+    mouseLocatnTextPixels= 'x=' + str(round(m_x_pix,1)) + ' pixels' + '   y= ' + str(round(m_y_pix,1)) + ' pixels'
+    mouseLocatnTextAlex.setText(mouseLocatnTextPixels)
+    mouseLocatnMsgAlex = 'dist='+ str(round(distanceAlex,2))+ '  mouse x=' + str(round(m_x_degAlex,2)) + ' y=' + str(round(m_y_degAlex,2)) + ' deg Alex'
     mouseLocatnTextAlex.setText(mouseLocatnMsgAlex)
-    mouseLocatnMsgPp =  'dist='+ str(round(distancePp,2))+ 'mouse x=' + str(round(m_x_degPp,2)) + ' y=' + str(round(m_y_degPp,2)) + ' deg Psychopy'
+    mouseLocatnMsgPp =  'dist='+ str(round(distancePp,2))+ '  mouse x=' + str(round(m_x_degPp,2)) + ' y=' + str(round(m_y_degPp,2)) + ' deg Psychopy'
     mouseLocatnTextPp.setText(mouseLocatnMsgPp)
     mouseLocatnTextAlex.draw()
     mouseLocatnTextPp.draw()
