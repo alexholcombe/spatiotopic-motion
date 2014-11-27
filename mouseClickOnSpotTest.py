@@ -31,10 +31,17 @@ locationOfProbe= np.array([0,4])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left
 #Im supposed to use the built-in logging function, should be able to get everything out of that
 myMouse = event.Mouse(visible = 'true',win=myWin)
 
-blackDot = visual.Circle(myWin,mask='circle',units=units,size=ballStdDev,autoLog=autoLogging)
+blackDot = visual.Circle(myWin,units=units,radius=ballStdDev)#,autoLog=autoLogging)
+blackDot.color='black'
 blackDot.colorSpace = 'rgb'
+blackDot.setFillColor((-1,-1,-1),colorSpace='rgb')
+
+blackDot.setColor(-1,-1,-1)
+
 blackDot.color = (-1,-1,-1)
-mouseLocationMarker = visual.Circle(myWin,mask='circle',colorSpace='rgb',color = (-1,-1,1),units='pix',size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
+mouseLocationMarker = visual.Circle(myWin,units='pix',radius=ballStdDev)#,autoLog=autoLogging)
+mouseLocationMarker.colorSpace='rgb'
+mouseLocationMarker.color = (-1,-1,1)
 notClicked = True
 
 cmperpixel = monitorwidth*1.0/widthPix
