@@ -3,7 +3,11 @@ from psychopy import sound, monitors, core, visual, event, data, gui, logging, i
 from math import atan, cos, sin, pi, sqrt, pow
 import numpy as np
 from psychopy.tools.monitorunittools import cm2pix, cm2deg, deg2cm, deg2pix, pix2cm, pix2deg
-ballStdDev = 0.8
+
+# https://groups.google.com/forum/#!topic/psychopy-users/HtCMaH70D98
+#degFlatPos might be best
+
+ballStdDev = 2
 autoLogging=False
 scrn=0 #1 means second screen
 fullscr=0
@@ -21,37 +25,41 @@ mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch 
 mon.setSizePix( (widthPix,heightPix) )
 myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,color=bgColor,colorSpace='rgb',fullscr=fullscr,
                                             screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
-                                            
+
+locationBlackDot= np.array([0,4])  
+locationYellowDot = np.array([0,8])
+
 mouseLocatnTextPixels = visual.TextStim(myWin,pos=(-.6,-.4),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.06,units='norm',autoLog=autoLogging)
 mouseLocatnTextAlex = visual.TextStim(myWin,pos=(-.8,-.6),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.06,units='norm',autoLog=autoLogging)
 mouseLocatnTextPp = visual.TextStim(myWin,pos=(-.8,-.8),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.06,units='norm',autoLog=autoLogging)
-
-locationOfProbe= np.array([0,4])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
-
-#Im supposed to use the built-in logging function, should be able to get everything out of that
-myMouse = event.Mouse(visible = 'true',win=myWin)
+dotLabelPos = locationBlackDot + np.array([1,0])
+dotLocatnText = visual.TextStim(myWin,pos=dotLabelPos,colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.7,units='deg',autoLog=autoLogging)
+yDotLabelPos = locationYellowDot  + np.array([1,0])
+yellowDotLocatnText = visual.TextStim(myWin,pos=yDotLabelPos,colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='center',height=.7,units='deg',autoLog=autoLogging)
 
 blackDot = visual.Circle(myWin,units=units,radius=ballStdDev)#,autoLog=autoLogging)
-blackDot.color='black'
-blackDot.colorSpace = 'rgb'
 blackDot.setFillColor((-1,-1,-1),colorSpace='rgb')
+blackDot.setPos(locationBlackDot)
+redDot = visual.Circle(myWin,units=units,radius=ballStdDev)#,autoLog=autoLogging)
+redDot.setFillColor((1,-1,-1),colorSpace='rgb')
+redDot.setPos((0,0))
+yellowDot = visual.Circle(myWin,units=units,radius=ballStdDev)#,autoLog=autoLogging)
+yellowDot.setFillColor((1,1,-1),colorSpace='rgb')
+yellowDot.setPos(locationYellowDot)
 
-blackDot.setColor(-1,-1,-1)
-
-blackDot.color = (-1,-1,-1)
-mouseLocationMarker = visual.Circle(myWin,units='pix',radius=ballStdDev)#,autoLog=autoLogging)
-mouseLocationMarker.colorSpace='rgb'
-mouseLocationMarker.color = (-1,-1,1)
+mouseLocationMarker = visual.Circle(myWin,units='deg',radius=ballStdDev)#,autoLog=autoLogging)
+mouseLocationMarker.setFillColor((-1,-1,1), colorSpace='rgb')
 notClicked = True
 
 cmperpixel = monitorwidth*1.0/widthPix
 degpercm = 1.0/cmperpixel/pixelperdegree;  
 
+myMouse = event.Mouse(visible = 'true',win=myWin)
 while notClicked: #collecting response
 
-    blackDot.setPos(locationOfProbe)
     blackDot.draw()
-    
+    yellowDot.draw()
+    redDot.draw()
     #handle key presses each frame
     for key in event.getKeys():
         if key in ['escape','q']:
@@ -64,20 +72,28 @@ while notClicked: #collecting response
     m_y_degAlex = (m_y_pix) * degpercm #mouse x location relative to center, converted to degrees from pixels
     m_x_degPp = pix2deg(m_x_pix, mon)
     m_y_degPp = pix2deg(m_y_pix, mon)
-    distanceAlex = sqrt(pow((locationOfProbe[0]-m_x_degAlex),2)+pow((locationOfProbe[1]-m_y_degAlex),2))
-    distancePp = sqrt(pow((locationOfProbe[0]-m_x_degPp),2)+pow((locationOfProbe[1]-m_y_degPp),2))
+    distanceAlex = sqrt(pow((locationBlackDot[0]-m_x_degAlex),2)+pow((locationBlackDot[1]-m_y_degAlex),2))
+    distancePp = sqrt(pow((locationBlackDot[0]-m_x_degPp),2)+pow((locationBlackDot[1]-m_y_degPp),2))
 
     #deg2cm(degrees, monitor[, correctFlat])
     mouseLocationMarker.setPos((m_x_pix, m_y_pix))
-    #mouseLocationMarker.setPos((m_x_degPp, m_y_degPp))
-    mouseLocatnTextPixels= 'x=' + str(round(m_x_pix,1)) + ' pixels' + '   y= ' + str(round(m_y_pix,1)) + ' pixels'
+    dotLocatnTextMsg = 'x,y=' + str(locationBlackDot) + ' deg,    ('+str( round(deg2pix(locationBlackDot[0],mon),1) )+', '+str( round(deg2pix(locationBlackDot[1],mon),1) )+ ' pixels Pp'
+    dotLocatnText.setText(dotLocatnTextMsg)
+    yellowDotLocatnTextMsg=  'x,y=' + str(locationYellowDot) + ' deg,    ('+str( round(deg2pix(locationYellowDot[0],mon),1) )+', '+str( round(deg2pix(locationYellowDot[1],mon),1) )+ ' pixels Pp'
+    yellowDotLocatnText.setText(yellowDotLocatnTextMsg)
+    mouseLocatnPixelsMsg = 'x=' + str(round(m_x_pix,1)) + ' pixels' + '   y= ' + str(round(m_y_pix,1)) + ' pixels'
+    mouseLocatnTextPixels.setText(mouseLocatnPixelsMsg)
     mouseLocatnTextAlex.setText(mouseLocatnTextPixels)
     mouseLocatnMsgAlex = 'dist='+ str(round(distanceAlex,2))+ '  mouse x=' + str(round(m_x_degAlex,2)) + ' y=' + str(round(m_y_degAlex,2)) + ' deg Alex'
     mouseLocatnTextAlex.setText(mouseLocatnMsgAlex)
     mouseLocatnMsgPp =  'dist='+ str(round(distancePp,2))+ '  mouse x=' + str(round(m_x_degPp,2)) + ' y=' + str(round(m_y_degPp,2)) + ' deg Psychopy'
     mouseLocatnTextPp.setText(mouseLocatnMsgPp)
+    dotLocatnText.draw()
     mouseLocatnTextAlex.draw()
     mouseLocatnTextPp.draw()
+    mouseLocatnTextPixels.draw()
+    dotLocatnText.draw()
+    yellowDotLocatnText.draw()
     if mouse1:
         notClicked = False
         #print 'assumes window spans entire screen of ',monitorwidth,' cm; mouse position apparently in cm when units is set to deg = (',mouseX,',',mouseY,')'  
@@ -87,5 +103,5 @@ while notClicked: #collecting response
 myWin.close()
 
 print("mouse x,y=","{:.3f}".format(x),",{:.3f}".format(y)," deg")
-print("Object was at ",np.round(locationOfProbe,2), " deg")
+print("Object was at ",np.round(locationBlackDot,2), " deg")
 print("Distance of click from object was",round(distanceAlex,3),"deg")

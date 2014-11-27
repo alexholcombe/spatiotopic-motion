@@ -4,9 +4,9 @@ Licensing: MIT license, which is like CC-BY for code.
 
 Jedi- ~~Jr.~~ Master Chris Fajou programmed initial version in October 2014. Thank you Chris!
 
-dots.py - Szinte & Cavanagh E2
+**dots.py** - Szinte & Cavanagh E2
 
-dotLocalize.py - control experiment. Localize individual dot presentation before and after saccade. Or if you happen to have palinopsia, localize the afterimage.
+**dotLocalize.py** - control experiment. Localize individual dot presentation before and after saccade. Or if you happen to have palinopsia, localize the afterimage.
 
 ##Szinte & Cavanagh stimulus details
 "gray background", luminance not specified.
