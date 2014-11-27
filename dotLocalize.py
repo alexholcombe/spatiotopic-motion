@@ -12,12 +12,12 @@ if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
-trialClock = core.Clock()
+keyWaitClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
 fullscr=False 
-infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
+infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -180,9 +180,10 @@ thisTrial = trials.next()
 previewCycles = 0
 normalCycles = 1
 #durations in frames
-initialDur = round(0.1*refreshRate) #target and foil dot without probe for the first 600 ms
-probeFirstDisappearance = round(0.5*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
-switchCues = round(0.6*refreshRate) # target and foil dots switch positions for 100 ms
+initialDur = round(0.2*refreshRate) #target and foil dot without probe
+probeFirstDisappearance = round(1.0*refreshRate) # probe disappears whilst target and foil dot remain the same
+switchCues = round(1.1*refreshRate) # target and foil dots switch positions
+
 probeSecondAppearance = 9999 # probe returns on the other side of the horizontal meridian for 400 ms
 probeSecondDisappearance = 9999 # probe disappears
 oneCycleFrames = int( round( 2*switchCues  ) )
@@ -257,6 +258,7 @@ while nDone < trials.nTotal and not expStop:
     
     for n in range(totFrames): #Loop for the trial STIMULUS
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
+        
     respPromptText.setPos([0,-.5]) #low down so doesnt interfere with apparent motion
     respPromptText.draw()
     targetDot.draw()
@@ -294,16 +296,19 @@ while nDone < trials.nTotal and not expStop:
             progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
             NextRemindCountText.setText(progressMsg)
             NextRemindCountText.draw()
-            myWin.flip(clearBuffer=True)
-             #oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
+            for i in arange(10): #post-response interval before fixation preview comes up
+                myWin.flip(clearBuffer=True)
 
-            keysPressedBetweenTrials = event.waitKeys(maxWait = respDeadline, keyList = ['space','escape'], timeStamped = False)
-            if keysPressedBetweenTrials is None:
-                keysPressedBetweenTrials = ['-99'] #because otherwise testing what's in it gives not-iterable error
-            if autopilot and ('escape' not in keysPressedBetweenTrials): # ( keysPressedBetweenTrials is None):
-                keysPressedBetweenTrials = ['space']
-            if 'escape' in keysPressedBetweenTrials:
-                    expStop=True
+            keyWaitClock.reset();
+            waitingForPressBetweenTrials = True
+            while waitingForPressBetweenTrials and keyWaitClock.getTime() < respDeadline:
+                oneFrameOfStim(0,targetDotPos,foilDotPos,probePos1,probePos2) #show first frame over and over
+                for key in event.getKeys():       #check if pressed abort-type key
+                      if key in ['escape']:
+                          expStop = True; waitingForPressBetweenTrials=False
+                      if key in ['space']:
+                          waitingForPressBetweenTrials=False
+                        
             thisTrial=trials.next()
             myWin.clearBuffer()
         nDone+=1
