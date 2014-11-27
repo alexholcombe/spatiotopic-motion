@@ -93,7 +93,7 @@ else: #checkRefreshEtc
                 userProcsDetailed=False  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
                                         #seems to require internet access, probably for process lookup
                 )
-    #print(runInfo)
+        #print(runInfo)
         logging.info(runInfo)
         print('Finished runInfo- which assesses the refresh and processes of this computer')
         runInfo_failed = False
@@ -177,6 +177,8 @@ blockReps = 1
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
+previewCycles = 0
+normalCycles = 1
 #durations in frames
 initialDur = round(0.1*refreshRate) #target and foil dot without probe for the first 600 ms
 probeFirstDisappearance = round(0.5*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
@@ -184,19 +186,19 @@ switchCues = round(0.6*refreshRate) # target and foil dots switch positions for 
 probeSecondAppearance = 9999 # probe returns on the other side of the horizontal meridian for 400 ms
 probeSecondDisappearance = 9999 # probe disappears
 oneCycleFrames = int( round( 2*switchCues  ) )
-totFrames = oneCycleFrames*3
+totFrames = oneCycleFrames*normalCycles
 
 def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimulus function
     targetDotPosThis = deepcopy(targetDotPos) #dont change starting value 
     foilDotPosThis =  deepcopy(foilDotPos)
     
-    twoCycles = oneCycleFrames*2 #First the target dot left->right->left->right to get eye movements in swing of things
+    previewFrames = previewCycles*oneCycleFrames #First the target dot left->right->left->right to get eye movements in swing of things
     cycleFrame = n % oneCycleFrames
     
-    if cycleFrame <= initialDur:   #show target and foil only, either because first part of trial
+    if cycleFrame <= initialDur:   #show target and foil only, because first part of trial
         pass #dont draw black dot, dont change positions
     elif initialDur <= cycleFrame < probeFirstDisappearance: #show first position of probe
-        if n >= twoCycles: #dont draw probe for first two cycles
+        if n >= previewFrames: #dont draw probe for first two cycles
             blackDot.pos = (probePos1)
             blackDot.draw()
     elif probeFirstDisappearance <= cycleFrame < switchCues:  #after probe first disappearance, but before target moves
@@ -207,7 +209,7 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
         foilDotPosThis *= -1
         
     if probeSecondAppearance <= cycleFrame < probeSecondDisappearance: #probe in new location
-        if n >= twoCycles: #dont draw probe for first two cycles
+        if n >= previewFrames: #dont draw probe for first two cycles
             blackDot.pos = (probePos2)
             blackDot.draw()
             
@@ -293,6 +295,8 @@ while nDone < trials.nTotal and not expStop:
             NextRemindCountText.setText(progressMsg)
             NextRemindCountText.draw()
             myWin.flip(clearBuffer=True)
+             #oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
+
             keysPressedBetweenTrials = event.waitKeys(maxWait = respDeadline, keyList = ['space','escape'], timeStamped = False)
             if keysPressedBetweenTrials is None:
                 keysPressedBetweenTrials = ['-99'] #because otherwise testing what's in it gives not-iterable error
