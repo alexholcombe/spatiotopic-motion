@@ -8,7 +8,7 @@ Jedi- ~~Jr.~~ Master Chris Fajou programmed initial version in October 2014. Tha
 
 **dotLocalize.py** - control experiment. Localize individual dot presentation before and after saccade. Or if you happen to have palinopsia, localize the afterimage.
 
-##Szinte & Cavanagh stimulus details
+##Szinte & Cavanagh E2 stimulus details
 "gray background", luminance not specified.
 
 First, target dot left->right->left->right (or the opposite direction) so participant gets their eye movements in the swing of things. 600ms each location.
@@ -19,3 +19,5 @@ First, target dot left->right->left->right (or the opposite direction) so partic
 4. Target and foil dot exchange places, 100 ms
 5. Black dot appears in second location, 400 ms
 6. Target and foil dot alone, for 100 ms
+
+They had no jitter of any locations, and tested only 3, which was probably not a good idea because it means seeing the second location is enough to know the right answer. So I should add jitter to the first location (and apply the same jitter value to the second location).

@@ -67,12 +67,12 @@ pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
 bgColor = [0,0,0] #"gray background"
 allowGUI = False
 waitBlank = False
-units = 'deg'
+windowAndMouseUnits = 'deg'
 monitorname = 'mitsubishi' #in psychopy Monitors Center #Holcombe lab monitor
 mon = monitors.Monitor(monitorname,width=monitorwidth, distance=viewdist)#fetch the most recent calib for this monitor
 mon.setSizePix( (widthPix,heightPix) )
 def openMyStimWindow(): #make it a function because have to do it several times, want to be sure is identical each time
-    myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=units,color=bgColor,colorSpace='rgb',fullscr=fullscr,
+    myWin = visual.Window(monitor=mon,size=(widthPix,heightPix),allowGUI=allowGUI,units=windowAndMouseUnits,color=bgColor,colorSpace='rgb',fullscr=fullscr,
                                             screen=scrn,waitBlanking=waitBlank) #Holcombe lab monitor
     return myWin
 myWin = openMyStimWindow()
@@ -155,6 +155,8 @@ myWin = openMyStimWindow()
 targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0, 1),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
+mouseLocationMarker = visual.Circle(myWin,units=windowAndMouseUnits,radius=ballStdDev/2.)#,autoLog=autoLogging)
+mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 
 beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
@@ -163,14 +165,16 @@ NextRemindCountText = visual.TextStim(myWin,pos=(0,-.6),colorSpace='rgb',color= 
 
 locationOfProbe= np.array([[0,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
-
 stimList=[]
 for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        for tilt in [-2,0,2]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
-            for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
+        titls = [-2,0,2]
+        if dirOrLocalize:
+            tilts = [0]
+        for tilt in tilts: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
+            for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the second probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
@@ -222,24 +226,29 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     myWin.flip()
 
 if dirOrLocalize:
-	header = 'trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespX\trespY\tdX\tdY'
+    myMouse = event.Mouse(visible = 'False',win=myWin)
+    header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY'
 else:
-	header = 'trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespLeftRight'
+    header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespLeftRight'
+print(header, file=dataFile)
 
-print(, file=dataFile)
-
-def collectResponse(expStop, dirOrLocalize):
+def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
     #if dirOrLocalize True, that means participant must click on a location, not report direction of motion
     if dirOrLocalize: #collect mouse click
         waitingForClick = True
         while waitingForClick and respClock.getTime() < respDeadline:
             m_x, m_y = myMouse.getPos()  # in the same units as the Window 
+            mouseLocationMarker.setPos((m_x, m_y)) #Because mouseLocationMarker is in same units as windowAndMouseUnits, and mouse returns windowAndMouseUnits, this has to work
             mouse1, mouse2, mouse3 = myMouse.getPressed()
             if mouse1 or mouse2 or mouse3:
-                notClicked = False
+                waitingForClick = False
             keysPressed = event.getKeys()
             if 'escape' in keysPressed:
                 expStop = True
+            mouseLocationMarker.draw()
+            for x in stuffToDrawOnRespScreen:
+                x.draw()
+            myWin.flip()
         if expStop or waitingForClick: #person never responded, but timed out. Presumably because of autopilot or hit escape
             m_x = None
             m_y = None
@@ -271,7 +280,10 @@ while nDone < trials.nTotal and not expStop:
                    "or the right. Mostly it will have jumped vertically but with a slight left or right offset. "
                    "Press the left arrow for left, \n"
                    "or the right arrow for right ")
-        respPromptText.setText("<---- left                            right ---->")
+        if dirOrLocalize:
+            respPromptText.setText("")
+        else:
+            respPromptText.setText("<---- left                            right ---->")
         beforeTrialsText.draw()
         respPromptText.draw()
         betweenTrialsText.setText('Press SPACE to continue')
@@ -282,6 +294,7 @@ while nDone < trials.nTotal and not expStop:
             if 'escape' in keysPressed:
                 print('User cancelled by pressing <escape>'); myWin.close(); core.quit()
         myWin.clearBuffer()
+    betweenTrialsText.setText('While looking at the green dot, press SPACE to continue')
 
     if thisTrial['startLeft']:
         targetDotPos=np.array([-5,0]) #target of saccades starts on left. 
@@ -303,33 +316,40 @@ while nDone < trials.nTotal and not expStop:
     targetDot.draw()
     foilDot.draw()
     myWin.flip()
-    expStop,resp = collectResponse(expStop,dirOrLocalize)
-
+    myMouse = event.Mouse(visible = 'False',win=myWin)
+    #myMouse.setVisible(True)
+    expStop,resp = collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen=(targetDot,foilDot))
+    #myMouse = event.Mouse(visible = 'False',win=myWin)
+    #myMouse.setVisible(False)
     if not expStop:
         if nDone==0: #initiate results dataframe
             print(thisTrial)  #deubgON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             if dirOrLocalize:
-            	df['respX'] = resp[0]
-            	df['respY'] = resp[1]
+                df['respX'] = resp[0]
+                df['respY'] = resp[1]
+                df['dx'] = probePos1[0] - resp[0]
+                df['dy'] = probePos1[1] - resp[1]
             else:
-            	df['respLeftRight'] = resp
-        else: #add this trial
+                df['respLeftRight'] = resp
+        else: #Not first trial. Add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             if dirOrLocalize:
-            	df['respX'][nDone] = resp[0]
-            	df['respY'][nDone] = resp[1]
-        	else:
-            	df['respLeftRight'][nDone] = resp
+                df['respX'][nDone] = resp[0]
+                df['respY'][nDone] = resp[1]
+                df['dx'][nDone] = probePos1[0] - resp[0]
+                df['dy'][nDone] = probePos1[1] - resp[1]
+            else:
+                df['respLeftRight'][nDone] = resp
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
-        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
-                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']
-         if dirOrLocalize:
-            oneTrialOfData +=  "%r\t"%resp[0] + "%r"%resp[1]
-         else:
+        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] +  "%2.2f\t"%probePos1[1] +
+                                        "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter'])
+        if dirOrLocalize:
+            oneTrialOfData +=  "%.2f\t"%df['respX'][nDone]  + "%.2f"%df['respY'][nDone] + "%.2f"%df['dx'][nDone] + "%.2f"%df['dy'][nDone]
+        else:
             oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
@@ -343,6 +363,7 @@ while nDone < trials.nTotal and not expStop:
             respClock.reset();
             waitingForPressBetweenTrials = True
             while waitingForPressBetweenTrials and respClock.getTime() < respDeadline:
+                betweenTrialsText.draw()
                 oneFrameOfStim(0,targetDotPos,foilDotPos,probePos1,probePos2) #show first frame over and over
                 for key in event.getKeys():       #check if pressed abort-type key
                       if key in ['escape']:
@@ -375,15 +396,16 @@ if  nDone >0:
     if len(neutralStimIdxs)>1:
       if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
         df['overCorrected']= np.nan
-      	if not dirOrLocalize:
-			forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respLeftRight']]
-			overCorrected = calcOverCorrected( forCalculatn )
-			print('overCorrected=\n',overCorrected)
-			df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
-			#print('dataframe with answer added=\n',df) #debug
-			#Summarise under over correct
-			print('For 0 tilt, overcorrection responses=', round( 100*df['overCorrected'].mean(), 2),
-					  '% of ', df['overCorrected'].count(), ' trials', sep='')
+        if not dirOrLocalize: 
+            forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respLeftRight']]
+            overCorrected = calcOverCorrected( forCalculatn )
+            print('overCorrected=\n',overCorrected)
+            df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
+            #print('dataframe with answer added=\n',df) #debug
+            #Summarise under over correct
+            print('For 0 tilt, overcorrection responses=', round( 100*df['overCorrected'].mean(), 2),
+                          '% of ', df['overCorrected'].count(), ' trials', sep='')
+                          
         #Calculate mean for each factor level
         zeroTiltOnly = df.loc[neutralStimIdxs,:]
         startLeft = zeroTiltOnly.groupby('startLeft')
@@ -391,6 +413,4 @@ if  nDone >0:
         upDown= zeroTiltOnly.groupby('upDown')
         print('Summary of upDown\n',upDown.mean())
     tiltGrp= df.groupby('tilt')
-    ns = tiltGrp.sum() #want n per trial to scale data point size
-    ns = list(ns['respLeftRight'])
     print('Summary of tilt\n',tiltGrp.mean())
