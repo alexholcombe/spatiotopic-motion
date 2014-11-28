@@ -222,6 +222,20 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
 
 print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespLeftRight', file=dataFile)
 
+def collectResponse(expStop):
+    keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
+    if keysPressed is None:
+        keysPressed = ['-99'] #because otherwise testing what's in it gives error
+    if autopilot and ('escape' not in keysPressed): #optionally person can press key, like esc to abort
+        keysPressed = ['right']
+    if 'escape' in keysPressed:
+            expStop=True
+    if 'left' in keysPressed: #recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
+            respLeftRight = 0
+    else:
+            respLeftRight = 1
+    return (expStop, respLeftRight)
+   
 expStop = False
 nDone = 0
 while nDone < trials.nTotal and not expStop:
@@ -263,40 +277,30 @@ while nDone < trials.nTotal and not expStop:
     respPromptText.draw()
     targetDot.draw()
     foilDot.draw()
-    myWin.flip() 
-    keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
-    if keysPressed is None:
-        keysPressed = ['-99'] #because otherwise testing what's in it gives error
-    if autopilot and ('escape' not in keysPressed): #optionally person can press key, like esc to abort
-        keysPressed = ['right']
-        
-    if 'escape' in keysPressed:
-            expStop=True
+    myWin.flip()
+    expStop,resp = collectResponse(expStop)
+
     if not expStop:
-        if 'left' in keysPressed: #recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
-            respLeftRight = 0
-        else:
-            respLeftRight = 1        
         if nDone==0: #initiate results dataframe
             print(thisTrial)  #deubgON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
-            df['respLeftRight'] = respLeftRight              
+            df['respLeftRight'] = resp
         else: #add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
-            df['respLeftRight'][nDone] = respLeftRight
+            df['respLeftRight'][nDone] = resp
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
-                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
+                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%resp)
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
             betweenTrialsText.draw()
             progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
             NextRemindCountText.setText(progressMsg)
-            NextRemindCountText.draw()
-            for i in arange(10): #post-response interval before fixation preview comes up
+            for i in range(10): #post-response interval before fixation preview comes up
+                NextRemindCountText.draw()
                 myWin.flip(clearBuffer=True)
 
             keyWaitClock.reset();
