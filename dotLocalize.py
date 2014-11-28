@@ -6,13 +6,14 @@ from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
+dirOrLocalize = True
 autopilot = False
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
-keyWaitClock = core.Clock()
+respClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
@@ -220,21 +221,45 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespLeftRight', file=dataFile)
+if dirOrLocalize:
+	header = 'trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespX\trespY\tdX\tdY'
+else:
+	header = 'trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespLeftRight'
 
-def collectResponse(expStop):
-    keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
-    if keysPressed is None:
-        keysPressed = ['-99'] #because otherwise testing what's in it gives error
-    if autopilot and ('escape' not in keysPressed): #optionally person can press key, like esc to abort
-        keysPressed = ['right']
-    if 'escape' in keysPressed:
-            expStop=True
-    if 'left' in keysPressed: #recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
-            respLeftRight = 0
-    else:
-            respLeftRight = 1
-    return (expStop, respLeftRight)
+print(, file=dataFile)
+
+def collectResponse(expStop, dirOrLocalize):
+    #if dirOrLocalize True, that means participant must click on a location, not report direction of motion
+    if dirOrLocalize: #collect mouse click
+        waitingForClick = True
+        while waitingForClick and respClock.getTime() < respDeadline:
+            m_x, m_y = myMouse.getPos()  # in the same units as the Window 
+            mouse1, mouse2, mouse3 = myMouse.getPressed()
+            if mouse1 or mouse2 or mouse3:
+                notClicked = False
+            keysPressed = event.getKeys()
+            if 'escape' in keysPressed:
+                expStop = True
+        if expStop or waitingForClick: #person never responded, but timed out. Presumably because of autopilot or hit escape
+            m_x = None
+            m_y = None
+        return (expStop, (m_x, m_y))
+            
+    else: #not dirOrLocalize, so report direction with arrow key
+        keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
+        if keysPressed is None:
+            keysPressed = ['-99'] #because otherwise testing what's in it gives error
+        if autopilot and ('escape' not in keysPressed): #optionally person can press key, like esc to abort
+            keysPressed = ['right']
+        if 'escape' in keysPressed:
+                expStop=True
+        if 'left' in keysPressed: #recoding key presses as 0 (anticlockwise) or 1 (clockwise) for data analysis
+                respLeftRight = 0
+        else:
+                respLeftRight = 1
+        resp = respLeftRight
+        
+    return (expStop, resp)
    
 expStop = False
 nDone = 0
@@ -278,22 +303,34 @@ while nDone < trials.nTotal and not expStop:
     targetDot.draw()
     foilDot.draw()
     myWin.flip()
-    expStop,resp = collectResponse(expStop)
+    expStop,resp = collectResponse(expStop,dirOrLocalize)
 
     if not expStop:
         if nDone==0: #initiate results dataframe
             print(thisTrial)  #deubgON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
-            df['respLeftRight'] = resp
+            if dirOrLocalize:
+            	df['respX'] = resp[0]
+            	df['respY'] = resp[1]
+            else:
+            	df['respLeftRight'] = resp
         else: #add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
-            df['respLeftRight'][nDone] = resp
+            if dirOrLocalize:
+            	df['respX'][nDone] = resp[0]
+            	df['respY'][nDone] = resp[1]
+        	else:
+            	df['respLeftRight'][nDone] = resp
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
-                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%resp)
+                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']
+         if dirOrLocalize:
+            oneTrialOfData +=  "%r\t"%resp[0] + "%r"%resp[1]
+         else:
+            oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
             betweenTrialsText.draw()
@@ -303,9 +340,9 @@ while nDone < trials.nTotal and not expStop:
                 NextRemindCountText.draw()
                 myWin.flip(clearBuffer=True)
 
-            keyWaitClock.reset();
+            respClock.reset();
             waitingForPressBetweenTrials = True
-            while waitingForPressBetweenTrials and keyWaitClock.getTime() < respDeadline:
+            while waitingForPressBetweenTrials and respClock.getTime() < respDeadline:
                 oneFrameOfStim(0,targetDotPos,foilDotPos,probePos1,probePos2) #show first frame over and over
                 for key in event.getKeys():       #check if pressed abort-type key
                       if key in ['escape']:
@@ -337,15 +374,16 @@ if  nDone >0:
     #print('neutralStimIdxs.any()=',neutralStimIdxs.any())
     if len(neutralStimIdxs)>1:
       if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
-        forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respLeftRight']]
-        overCorrected = calcOverCorrected( forCalculatn )
-        print('overCorrected=\n',overCorrected)
         df['overCorrected']= np.nan
-        df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
-        #print('dataframe with answer added=\n',df) #debug
-        #Summarise under over correct
-        print('For 0 tilt, overcorrection responses=', round( 100*df['overCorrected'].mean(), 2),
-                  '% of ', df['overCorrected'].count(), ' trials', sep='')
+      	if not dirOrLocalize:
+			forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respLeftRight']]
+			overCorrected = calcOverCorrected( forCalculatn )
+			print('overCorrected=\n',overCorrected)
+			df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
+			#print('dataframe with answer added=\n',df) #debug
+			#Summarise under over correct
+			print('For 0 tilt, overcorrection responses=', round( 100*df['overCorrected'].mean(), 2),
+					  '% of ', df['overCorrected'].count(), ' trials', sep='')
         #Calculate mean for each factor level
         zeroTiltOnly = df.loc[neutralStimIdxs,:]
         startLeft = zeroTiltOnly.groupby('startLeft')

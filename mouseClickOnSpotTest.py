@@ -69,8 +69,7 @@ while notClicked: #collecting response
         if key in ['escape','q']:
             myWin.close()
             core.quit()
-                    
-    mouse1, mouse2, mouse3 = myMouse.getPressed() 
+                   
     m_x, m_y = myMouse.getPos()  # in the same units as the Window 
 #    m_x_pix = m_x*pixPerDeg
 #    m_x_pix = m_x*(widthPix*2)
@@ -114,12 +113,13 @@ while notClicked: #collecting response
         mouseLocatnTextPp.setText(mouseLocatnMsgPp)
         mouseLocatnTextAlex.draw()
         mouseLocatnTextPp.draw()
-    if mouse1:
-        notClicked = False
-        #print 'assumes window spans entire screen of ',monitorwidth,' cm; mouse position apparently in cm when units is set to deg = (',mouseX,',',mouseY,')'  
-        #because mouse apparently giving coordinates in cm, I need to convert it to degrees of visual angle because that's what drawing is done in terms of
+
     mouseLocationMarker.draw()
     myWin.flip() #new frame
+    
+    mouse1, mouse2, mouse3 = myMouse.getPressed()
+    if mouse1 or mouse2 or mouse3:
+        notClicked = False
 myWin.close()
 
 print("Alex mouse x,y=","{:.3f}".format(m_x_degAlex),",{:.3f}".format(m_y_degAlex)," deg")
