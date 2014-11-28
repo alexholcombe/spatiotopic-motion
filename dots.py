@@ -6,7 +6,7 @@ from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
-autopilot = False
+autopilot = True
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -16,8 +16,8 @@ trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
-fullscr=False 
-infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
+fullscr=True 
+infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 120 }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -57,11 +57,11 @@ ppLogF = logging.LogFile(logFname,
     filemode='w',#if you set this to 'a' it will append instead of overwriting
     level=logging.INFO)#errors, data and warnings will be sent to this logfile 
     
-scrn=0 #1 means second screen
+scrn=1 #1 means second screen
 widthPix =1024#1024  #monitor width in pixels
 heightPix =768#768  #monitor height in pixels
-monitorwidth = 40. #28.5 #monitor width in centimeters
-viewdist = 57.; #cm
+monitorwidth = 39. #28.5 #monitor width in centimeters
+viewdist = 50.; #cm
 pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
 bgColor = [0,0,0] #"gray background"
 allowGUI = False
@@ -151,7 +151,7 @@ if not demo:
     allowGUI = False
 myWin = openMyStimWindow()
 
-targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
+targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 0.7, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0, 1),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 
@@ -168,7 +168,7 @@ for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        for tilt in [-2,0,2]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
+        for tilt in [-0.6,0,0.6]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
