@@ -17,7 +17,7 @@ respClock = core.Clock(); myClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
-fullscr=False 
+fullscr=True
 infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
@@ -328,7 +328,8 @@ while nDone < trials.nTotal and not expStop:
     targetDot.draw()
     foilDot.draw()
     myWin.flip()
-    myMouse = event.Mouse(visible = 'False',win=myWin)
+    #myMouse.setPos((-5,-2)) #setPos only works for pygame window, not pyglet that psychopy using now
+    #myMouse = event.Mouse(visible = 'False',win=myWin)
     #myMouse.setVisible(True)
     expStop,resp = collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen=(targetDot,foilDot))
     #myMouse = event.Mouse(visible = 'False',win=myWin)
@@ -341,8 +342,8 @@ while nDone < trials.nTotal and not expStop:
             if dirOrLocalize:
                 df['respX'] = resp[0]
                 df['respY'] = resp[1]
-                df['dx'] = probePos1[0] - resp[0]
-                df['dy'] = probePos1[1] - resp[1]
+                df['dx'] = resp[0] - probePos1[0]
+                df['dy'] = resp[1] - probePos1[1]
             else:
                 df['respLeftRight'] = resp
         else: #Not first trial. Add this trial
@@ -350,8 +351,8 @@ while nDone < trials.nTotal and not expStop:
             if dirOrLocalize:
                 df['respX'][nDone] = resp[0]
                 df['respY'][nDone] = resp[1]
-                df['dx'][nDone] = probePos1[0] - resp[0]
-                df['dy'][nDone] = probePos1[1] - resp[1]
+                df['dx'][nDone] = resp[0] - probePos1[0]
+                df['dy'][nDone] = resp[1] - probePos1[1]
             else:
                 df['respLeftRight'][nDone] = resp
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
