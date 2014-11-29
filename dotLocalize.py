@@ -13,7 +13,7 @@ if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
-respClock = core.Clock()
+respClock = core.Clock(); myClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
@@ -186,7 +186,7 @@ previewCycles = 0
 normalCycles = 1
 #durations in frames
 initialDur = round(0.2*refreshRate) #target and foil dot without probe
-probeFirstDisappearance = round(1.0*refreshRate) # probe disappears whilst target and foil dot remain the same
+probeFirstDisappearance = round(1.2*refreshRate) # probe disappears whilst target and foil dot remain the same
 switchCues = round(1.1*refreshRate) # target and foil dots switch positions
 
 probeSecondAppearance = 9999 # probe returns on the other side of the horizontal meridian for 400 ms
@@ -307,7 +307,19 @@ while nDone < trials.nTotal and not expStop:
         yMultiplier = -1
     probePos1= [ thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*yMultiplier ]
     probePos2 =[ thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1 ] #y of second location is simply vertical reflection of position 1
-    
+
+    if nDone >0: #Have to press a key to go to next trial. Meanwhile show first frame of this trial. (this is why this cant be at end of loop)
+        myClock.reset();
+        waitingForPressBetweenTrials = True
+        while waitingForPressBetweenTrials and myClock.getTime() < respDeadline:
+            betweenTrialsText.draw()
+            oneFrameOfStim(0,targetDotPos,foilDotPos,probePos1,probePos2) #show first frame over and over
+            for key in event.getKeys():       #check if pressed abort-type key
+                  if key in ['escape']:
+                      expStop = True; waitingForPressBetweenTrials=False
+                  if key in ['space']:
+                      waitingForPressBetweenTrials=False
+                          
     for n in range(totFrames): #Loop for the trial STIMULUS
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
         
@@ -323,7 +335,7 @@ while nDone < trials.nTotal and not expStop:
     #myMouse.setVisible(False)
     if not expStop:
         if nDone==0: #initiate results dataframe
-            print(thisTrial)  #deubgON
+            print(thisTrial)  #debugON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             if dirOrLocalize:
@@ -359,17 +371,6 @@ while nDone < trials.nTotal and not expStop:
             for i in range(10): #post-response interval before fixation preview comes up
                 NextRemindCountText.draw()
                 myWin.flip(clearBuffer=True)
-
-            respClock.reset();
-            waitingForPressBetweenTrials = True
-            while waitingForPressBetweenTrials and respClock.getTime() < respDeadline:
-                betweenTrialsText.draw()
-                oneFrameOfStim(0,targetDotPos,foilDotPos,probePos1,probePos2) #show first frame over and over
-                for key in event.getKeys():       #check if pressed abort-type key
-                      if key in ['escape']:
-                          expStop = True; waitingForPressBetweenTrials=False
-                      if key in ['space']:
-                          waitingForPressBetweenTrials=False
                         
             thisTrial=trials.next()
             myWin.clearBuffer()
