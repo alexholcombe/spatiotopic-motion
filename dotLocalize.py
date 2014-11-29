@@ -157,6 +157,9 @@ foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0,
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 mouseLocationMarker = visual.Circle(myWin,units=windowAndMouseUnits,radius=ballStdDev/2.)#,autoLog=autoLogging)
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
+clickContinueArea = visual.Rect(myWin,units='norm',width=.3,height=.3,fillColor=(-1,-1,0),autoLog=autoLogging)
+clickContinueArea.setPos((-1,1))
+mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 
 beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
@@ -286,7 +289,11 @@ while nDone < trials.nTotal and not expStop:
             respPromptText.setText("<---- left                            right ---->")
         beforeTrialsText.draw()
         respPromptText.draw()
-        betweenTrialsText.setText('Press SPACE to continue')
+        if dirOrLocalize:
+            betweenTrialsText.setText('CLICK in blue area to continue')
+            clickContinueArea.draw()
+        else:
+            betweenTrialsText.setText('Press SPACE to continue')
         betweenTrialsText.draw()
         myWin.flip(clearBuffer=True)
         if not autopilot:
