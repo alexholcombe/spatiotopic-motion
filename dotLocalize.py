@@ -164,7 +164,7 @@ mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 beforeFirstTrialText = visual.TextStim(myWin,pos=(.2, .95),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center',height=.03,units='norm',autoLog=autoLogging)
-nextRemindCountText = visual.TextStim(myWin,pos=(-.95,.95),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='top',height=.05,units='norm',autoLog=autoLogging)
+nextRemindCountText = visual.TextStim(myWin,pos=(-.95,.95),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='top',height=.03,units='norm',autoLog=autoLogging)
 
 locationOfProbe= np.array([[0,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
@@ -173,11 +173,11 @@ for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        titls = [-2,0,2]
+        tilts = [-2,0,2]
         if dirOrLocalize:
             tilts = [0]
         for tilt in tilts: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
-            for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the second probe
+            for jitter in [-1,0,1]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the second probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
@@ -453,4 +453,4 @@ if  nDone >0:
         upDown= zeroTiltOnly.groupby('upDown')
         print('Summary of upDown\n',upDown.mean())
     tiltGrp= df.groupby('tilt')
-    print('Summary of tilt\n',tiltGrp.mean())
+    print('Summary of tilt\n',np.around(tiltGrp.mean(),3))

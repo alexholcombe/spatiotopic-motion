@@ -20,4 +20,4 @@ First, target dot left->right->left->right (or the opposite direction) so partic
 5. Black dot appears in second location, 400 ms
 6. Target and foil dot alone, for 100 ms
 
-They had no jitter of any locations, and tested only 3, which was probably not a good idea because it means seeing the second location is enough to know the right answer. So I should add jitter to the first location (and apply the same jitter value to the second location).
+They had no jitter of any locations, and tested only 3, which was probably not a good idea because it means seeing the second location is enough to know the right answer. So I  add jitter to the first location (and apply the same jitter value to the second location).
