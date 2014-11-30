@@ -161,7 +161,7 @@ clickContinueArea = visual.Rect(myWin,units='norm',width=.3,height=.3,fillColor=
 clickContinueArea.setPos((-1,1))
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 
-beforeTrialsText = visual.TextStim(myWin,pos=(0, 0),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.05, units='norm',autoLog=autoLogging)
+beforeFirstTrialText = visual.TextStim(myWin,pos=(0, .95),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center',height=.03,units='norm',autoLog=autoLogging)
 NextRemindCountText = visual.TextStim(myWin,pos=(0,-.6),colorSpace='rgb',color= (1,1,1),alignHoriz='center', alignVert='center',height=.05,units='norm',autoLog=autoLogging)
@@ -239,7 +239,11 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
     #if dirOrLocalize True, that means participant must click on a location, not report direction of motion
     if dirOrLocalize: #collect mouse click
         waitingForClick = True
+        mouseMovedYet = False
+        myMouse.getRel() #resets relative to can detect first time mouse moves, and only then draw the marker
         while waitingForClick and respClock.getTime() < respDeadline:
+            if (myMouse.getRel()).any():
+                mouseMovedYet = True
             m_x, m_y = myMouse.getPos()  # in the same units as the Window 
             mouseLocationMarker.setPos((m_x, m_y)) #Because mouseLocationMarker is in same units as windowAndMouseUnits, and mouse returns windowAndMouseUnits, this has to work
             mouse1, mouse2, mouse3 = myMouse.getPressed()
@@ -248,7 +252,8 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
             keysPressed = event.getKeys()
             if 'escape' in keysPressed:
                 expStop = True
-            mouseLocationMarker.draw()
+            if mouseMovedYet:
+                mouseLocationMarker.draw() #dont draw marker until mouse moves for the first time
             for x in stuffToDrawOnRespScreen:
                 x.draw()
             myWin.flip()
@@ -256,7 +261,6 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
             m_x = None
             m_y = None
         return (expStop, (m_x, m_y))
-            
     else: #not dirOrLocalize, so report direction with arrow key
         keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
         if keysPressed is None:
@@ -272,37 +276,76 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
         resp = respLeftRight
         
     return (expStop, resp)
-   
-expStop = False
-nDone = 0
-while nDone < trials.nTotal and not expStop:
-    if nDone ==0:
-        beforeTrialsText.setText("In this task you are to look directly at the green dot, wherever it moves on the screen. "
-                   "Keep looking at the green dot, but attend to the black dot that will either move upwards or downwards during the "
-                   "trial. At the end of the trial you are required to identify whether the black dot moved (slightly) to the left "
-                   "or the right. Mostly it will have jumped vertically but with a slight left or right offset. "
-                   "Press the left arrow for left, \n"
-                   "or the right arrow for right ")
-        if dirOrLocalize:
-            respPromptText.setText("")
-        else:
-            respPromptText.setText("<---- left                            right ---->")
-        beforeTrialsText.draw()
-        respPromptText.draw()
+
+
+if dirOrLocalize:
+    respPromptText.setText("")
+    instructns = ("During a trial, follow the green dot with your eyes."
+               "Always look at the green dot, but attend to the black dot that appears. "
+               "At the end of the trial please click on where you see the afterimage of the dot. ")
+else:
+    instructns = ("During a trial, follow the green dot with your eyes. "
+               "Always look at the green dot, but attend to the black dot that will either move upwards or downwards during the "
+               "trial. At the end of the trial you are required to identify whether the black dot moved (slightly) to the left "
+               "or the right. Mostly it will have jumped vertically but with a slight left or right offset. "
+               "Press the left arrow for left, \n"
+               "or the right arrow for right ")
+    respPromptText.setText("<---- left                            right ---->")
+beforeFirstTrialText.setText(instructns)
+
+def waitBeforeTrial(nDone,respDeadline,expStop,stuffToDrawOnRespScreen):
+    #displayDraw is a function instance to call to draw what want to between trials
         if dirOrLocalize:
             betweenTrialsText.setText('CLICK in blue area to continue')
             clickContinueArea.draw()
         else:
             betweenTrialsText.setText('Press SPACE to continue')
-        betweenTrialsText.draw()
-        myWin.flip(clearBuffer=True)
-        if not autopilot:
-            keysPressed = event.waitKeys(maxWait = 120, keyList = ['space','escape'], timeStamped = False)
-            if 'escape' in keysPressed:
-                print('User cancelled by pressing <escape>'); myWin.close(); core.quit()
-        myWin.clearBuffer()
-    betweenTrialsText.setText('While looking at the green dot, press SPACE to continue')
 
+        myClock.reset();
+        if dirOrLocalize:
+            betweenTrialsText.setText('CLICK in blue area to continue')
+            waitingForClick = True
+            while waitingForClick and respClock.getTime() < respDeadline:
+                m_x, m_y = myMouse.getPos()  # in the same units as the Window 
+                mouseLocationMarker.setPos((m_x, m_y)) #Because mouseLocationMarker is in same units as windowAndMouseUnits, and mouse returns windowAndMouseUnits, this has to work
+                mouse1, mouse2, mouse3 = myMouse.getPressed()
+                if myMouse.isPressedIn(clickContinueArea):
+                    waitingForClick = False
+                if waitingForClick and (mouse1 or mouse2 or mouse3):
+                   myWin.flip(); myWin.flip() #flicker everything to tell user registered your click but it's in wrong place
+                keysPressed = event.getKeys()
+                if 'escape' in keysPressed:
+                    expStop = True
+                for x in stuffToDrawOnRespScreen:
+                    x.draw()
+                betweenTrialsText.setText('CLICK in blue area to continue')
+                if nDone==0:
+                    beforeFirstTrialText.draw()
+                clickContinueArea.draw()
+                mouseLocationMarker.draw()
+                betweenTrialsText.draw()
+                myWin.flip()
+        if not expStop and not waitingForClick: #person never responded, but timed out. Presumably because of autopilot or hit escape
+            waitingForPressBetweenTrials = True
+            betweenTrialsText.setText('While looking at the green dot, press SPACE to continue')
+            while waitingForPressBetweenTrials and myClock.getTime() < respDeadline:
+                if nDone==0:
+                    beforeFirstTrialText.draw()
+                respPromptText.draw()
+                betweenTrialsText.draw()
+                for x in stuffToDrawOnRespScreen:
+                    x.draw()
+                myWin.flip()
+                for key in event.getKeys():       #check if pressed abort-type key
+                      if key in ['escape']:
+                          expStop = True; waitingForPressBetweenTrials=False
+                      if key in ['space']:
+                          waitingForPressBetweenTrials=False
+#end waiting between trials
+
+expStop = False
+nDone = 0
+while nDone < trials.nTotal and not expStop:
     if thisTrial['startLeft']:
         targetDotPos=np.array([-5,0]) #target of saccades starts on left. 
         foilDotPos =np.array([5,0])  
@@ -314,22 +357,13 @@ while nDone < trials.nTotal and not expStop:
         yMultiplier = -1
     probePos1= [ thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*yMultiplier ]
     probePos2 =[ thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1 ] #y of second location is simply vertical reflection of position 1
+    targetDot.setPos(targetDotPos)
+    foilDot.setPos(foilDotPos)
+    waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
 
-    if nDone >0: #Have to press a key to go to next trial. Meanwhile show first frame of this trial. (this is why this cant be at end of loop)
-        myClock.reset();
-        waitingForPressBetweenTrials = True
-        while waitingForPressBetweenTrials and myClock.getTime() < respDeadline:
-            betweenTrialsText.draw()
-            oneFrameOfStim(0,targetDotPos,foilDotPos,probePos1,probePos2) #show first frame over and over
-            for key in event.getKeys():       #check if pressed abort-type key
-                  if key in ['escape']:
-                      expStop = True; waitingForPressBetweenTrials=False
-                  if key in ['space']:
-                      waitingForPressBetweenTrials=False
-                          
     for n in range(totFrames): #Loop for the trial STIMULUS
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
-        
+    
     respPromptText.setPos([0,-.5]) #low down so doesnt interfere with apparent motion
     respPromptText.draw()
     targetDot.draw()
@@ -338,7 +372,7 @@ while nDone < trials.nTotal and not expStop:
     #myMouse.setPos((-5,-2)) #setPos only works for pygame window, not pyglet that psychopy using now
     #myMouse = event.Mouse(visible = 'False',win=myWin)
     #myMouse.setVisible(True)
-    expStop,resp = collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen=(targetDot,foilDot))
+    expStop,resp = collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen=(targetDot,foilDot,respPromptText))
     #myMouse = event.Mouse(visible = 'False',win=myWin)
     #myMouse.setVisible(False)
     if not expStop:
@@ -373,7 +407,6 @@ while nDone < trials.nTotal and not expStop:
             oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
-            betweenTrialsText.draw()
             progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
             NextRemindCountText.setText(progressMsg)
             for i in range(10): #post-response interval before fixation preview comes up
