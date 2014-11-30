@@ -224,7 +224,8 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
         if nWhenAfterimage == 9999: #need to wait until person presses key to indicate afterimage has built up
             event.clearEvents() #clear keypresses and mouse clicks
             waitingForPress = True
-            while waitingForPress:
+            waitStartN = n
+            while waitingForPress and ( (n-waitStartN)/refreshRate < respDeadline ):
                 blackDot.draw()
                 targetDot.draw()
                 foilDot.draw()
@@ -235,6 +236,8 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
                     waitingForPress = False
                     nWhenAfterimage = n
                     afterimageDurClock.reset()
+            if autopilot:
+                nWhenAfterimage =0
 
 #    if probeSecondAppearance <= cycleFrame < probeSecondDisappearance: #probe in new location
 #        if n >= previewFrames: #dont draw probe for first two cycles
@@ -255,6 +258,7 @@ print(header, file=dataFile)
 
 def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
     #if dirOrLocalize True, that means participant must click on a location, not report direction of motion
+    afterimageDur = -999
     if dirOrLocalize: #collect mouse click
         waitingForClick = True
         mouseMovedYet = False
@@ -268,6 +272,7 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
             if mouse1 or mouse2 or mouse3:
                 waitingForClick = False
                 afterimageDur = afterimageDurClock.getTime()
+                print('afterimageDur=',afterimageDur)
             keysPressed = event.getKeys()
             if 'escape' in keysPressed:
                 expStop = True
@@ -279,7 +284,7 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
         if expStop or waitingForClick: #person never responded, but timed out. Presumably because of autopilot or hit escape
             m_x = 0.0
             m_y = 0.0
-        return (expStop, (m_x, m_y))
+        return (expStop, (m_x, m_y), afterimageDur)
     else: #not dirOrLocalize, so report direction with arrow key
         keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
         if keysPressed is None:
@@ -293,8 +298,7 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
         else:
                 respLeftRight = 1
         resp = respLeftRight
-        
-    return (expStop, resp)
+    return (expStop, resp, afterimageDur)
 
 
 if dirOrLocalize:
@@ -384,7 +388,6 @@ while nDone < trials.nTotal and not expStop:
     foilDot.setPos(foilDotPos)
     expStop = waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
     nWhenAfterimage = 9999 #record nWhenAfterImage starts
-    afterimageDur = -9999
     finished = False
     n=0
     while not finished: #Loop for the trial STIMULUS
@@ -400,7 +403,7 @@ while nDone < trials.nTotal and not expStop:
     #myMouse.setPos((-5,-2)) #setPos only works for pygame window, not pyglet that psychopy using now
     #myMouse = event.Mouse(visible = 'False',win=myWin)
     #myMouse.setVisible(True)
-    expStop,resp = collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen=(targetDot,foilDot,respPromptText))
+    expStop,resp,afterimageDur = collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen=(targetDot,foilDot,respPromptText))
     #myMouse = event.Mouse(visible = 'False',win=myWin)
     #myMouse.setVisible(False)
     if not expStop:
@@ -438,7 +441,7 @@ while nDone < trials.nTotal and not expStop:
                                         "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%jitter)
         if dirOrLocalize:
             oneTrialOfData +=  ("%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f\t"%df['dy'][nDone] +
-                                                "%.2f\t"%afterimageGenesis + "%.2f"%afterimageDur
+                                                "%.2f\t"%afterimageGenesis + "%.2f"%afterimageDur)
         else:
             oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
