@@ -406,7 +406,7 @@ while nDone < trials.nTotal and not expStop:
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] +  "%2.2f\t"%probePos1[1] +
                                         "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter'])
         if dirOrLocalize:
-            oneTrialOfData +=  "%.2f\t"%df['respX'][nDone]  + "%.2f"%df['respY'][nDone] + "%.2f"%df['dx'][nDone] + "%.2f"%df['dy'][nDone]
+            oneTrialOfData +=  "%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f"%df['dy'][nDone]
         else:
             oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
