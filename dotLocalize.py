@@ -258,8 +258,8 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
                 x.draw()
             myWin.flip()
         if expStop or waitingForClick: #person never responded, but timed out. Presumably because of autopilot or hit escape
-            m_x = None
-            m_y = None
+            m_x = 0.0
+            m_y = 0.0
         return (expStop, (m_x, m_y))
     else: #not dirOrLocalize, so report direction with arrow key
         keysPressed = event.waitKeys(maxWait = respDeadline, keyList = ['left','right','escape'], timeStamped = False)
@@ -366,7 +366,7 @@ while nDone < trials.nTotal and not expStop:
 
     for n in range(totFrames): #Loop for the trial STIMULUS
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
-    
+    event.clearEvents() #clear keypresses and mouse clicks
     respPromptText.setPos([0,-.5]) #low down so doesnt interfere with apparent motion
     respPromptText.draw()
     targetDot.draw()
@@ -393,6 +393,7 @@ while nDone < trials.nTotal and not expStop:
         else: #Not first trial. Add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             if dirOrLocalize:
+                print("resp= ",resp)
                 df['respX'][nDone] = resp[0]
                 df['respY'][nDone] = resp[1]
                 df['dx'][nDone] = resp[0] - probePos1[0]
