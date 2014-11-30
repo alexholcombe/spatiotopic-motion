@@ -16,8 +16,9 @@ trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
-fullscr=True 
-infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 120 }
+fullscr=True
+refreshRate = 60
+infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 

@@ -13,7 +13,8 @@ if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
-respClock = core.Clock(); myClock = core.Clock()
+respClock = core.Clock(); myClock = core.Clock(); 
+afterimageDurClock = core.Clock()
 refreshRate = 60
 ballStdDev = 0.8
 autoLogging = False
@@ -233,6 +234,7 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
                 if 'space' in keysPressed:
                     waitingForPress = False
                     nWhenAfterimage = n
+                    afterimageDurClock.reset()
 
 #    if probeSecondAppearance <= cycleFrame < probeSecondDisappearance: #probe in new location
 #        if n >= previewFrames: #dont draw probe for first two cycles
@@ -265,6 +267,7 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
             mouse1, mouse2, mouse3 = myMouse.getPressed()
             if mouse1 or mouse2 or mouse3:
                 waitingForClick = False
+                afterimageDur = afterimageDurClock.getTime()
             keysPressed = event.getKeys()
             if 'escape' in keysPressed:
                 expStop = True
@@ -381,6 +384,7 @@ while nDone < trials.nTotal and not expStop:
     foilDot.setPos(foilDotPos)
     expStop = waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
     nWhenAfterimage = 9999 #record nWhenAfterImage starts
+    afterimageDur = -9999
     finished = False
     n=0
     while not finished: #Loop for the trial STIMULUS
@@ -410,7 +414,8 @@ while nDone < trials.nTotal and not expStop:
                 df['respY'] = resp[1]
                 df['dx'] = resp[0] - probePos1[0]
                 df['dy'] = resp[1] - probePos1[1]
-                df['afterimageGenesis'] = afterimageGenesis
+                df['afterimageGenesis'] = afterimageGenesis 
+                df['afterimageDur'] = afterimageDur
             else:
                 df['respLeftRight'] = resp
         else: #Not first trial. Add this trial
@@ -423,6 +428,7 @@ while nDone < trials.nTotal and not expStop:
                 df['dx'][nDone] = resp[0] - probePos1[0]
                 df['dy'][nDone] = resp[1] - probePos1[1]
                 df['afterimageGenesis'][nDone] = afterimageGenesis
+                df['afterimageDur'][nDone] = afterimageDur
             else:
                 df['respLeftRight'][nDone] = resp
             print( df.loc[nDone-1:nDone] ) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
@@ -431,7 +437,8 @@ while nDone < trials.nTotal and not expStop:
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] +  "%2.2f\t"%probePos1[1] +
                                         "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%jitter)
         if dirOrLocalize:
-            oneTrialOfData +=  "%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f\t"%df['dy'][nDone] + "%.2f"%afterimageGenesis
+            oneTrialOfData +=  ("%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f\t"%df['dy'][nDone] +
+                                                "%.2f\t"%afterimageGenesis + "%.2f"%afterimageDur
         else:
             oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
