@@ -14,11 +14,12 @@ if quitFinder:
     shellCmd = 'osascript -e '+applescript
     os.system(shellCmd)
 respClock = core.Clock(); myClock = core.Clock()
+refreshRate = 60
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
 fullscr=True
-infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': 60 }
+infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate':refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -204,11 +205,13 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
     #cycleFrame = n % oneCycleFrames
 
     #After he presses key, jump so move eyes
-    if nWhenAfterimage <= n < nWhenAfterimage + oneCycleFrames: #target and foil in exchanged positions
+    if nWhenAfterimage <= n: #target and foil in exchanged positions
         targetDotPosThis *=-1
         foilDotPosThis *= -1
     targetDot.pos= (targetDotPosThis)
     foilDot.pos= (foilDotPosThis)
+    if n> nWhenAfterimage+5:
+        finished = True #time to start waiting for mouse click to record response
     
     if n <= initialDur:   #show target and foil only, because first part of trial
         pass #dont draw black dot, dont change positions
@@ -229,10 +232,7 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
                 if 'space' in keysPressed:
                     waitingForPress = False
                     nWhenAfterimage = n
-    if nWhenAfterimage <= n < nWhenAfterimage + switchCues:  #after probe first disappearance, but before target reappears (if it does)
-        pass #dont draw black dot, don't change positions
-    if n >= nWhenAfterimage + switchCues:
-        finished = True
+
 #    if probeSecondAppearance <= cycleFrame < probeSecondDisappearance: #probe in new location
 #        if n >= previewFrames: #dont draw probe for first two cycles
 #            blackDot.pos = (probePos2)
@@ -241,11 +241,11 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
     targetDot.draw()
     foilDot.draw()
     myWin.flip()
-    return nWhenAfterimage, finished
+    return n, nWhenAfterimage, finished
 
 if dirOrLocalize:
     myMouse = event.Mouse(visible = 'False',win=myWin)
-    header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY\tnWhenAfterimage'
+    header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY\tafterimageGenesis'
 else:
     header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespLeftRight'
 print(header, file=dataFile)
@@ -380,8 +380,12 @@ while nDone < trials.nTotal and not expStop:
     foilDot.setPos(foilDotPos)
     expStop = waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
     nWhenAfterimage = 9999 #record nWhenAfterImage starts
-    for n in range(totFrames): #Loop for the trial STIMULUS
-        nWhenAfterimage = oneFrameOfStim(n,nWhenAfterimage,targetDotPos,foilDotPos,probePos1,probePos2)
+    finished = False
+    n=0
+    while not finished: #Loop for the trial STIMULUS
+        n, nWhenAfterimage, finished = oneFrameOfStim(n,nWhenAfterimage,finished, targetDotPos,foilDotPos,probePos1,probePos2)
+        n +=1
+    afterimageGenesis = (nWhenAfterimage - probeFirstDisappearance) / refreshRate
     event.clearEvents() #clear keypresses and mouse clicks
     respPromptText.setPos([0,-.5]) #low down so doesnt interfere with apparent motion
     respPromptText.draw()
@@ -405,7 +409,7 @@ while nDone < trials.nTotal and not expStop:
                 df['respY'] = resp[1]
                 df['dx'] = resp[0] - probePos1[0]
                 df['dy'] = resp[1] - probePos1[1]
-                df['nWhenAfterimage'] = nWhenAfterimage
+                df['afterimageGenesis'] = afterimageGenesis
             else:
                 df['respLeftRight'] = resp
         else: #Not first trial. Add this trial
@@ -417,6 +421,7 @@ while nDone < trials.nTotal and not expStop:
                 df['respY'][nDone] = resp[1]
                 df['dx'][nDone] = resp[0] - probePos1[0]
                 df['dy'][nDone] = resp[1] - probePos1[1]
+                df['afterimageGenesis'][nDone] = afterimageGenesis
             else:
                 df['respLeftRight'][nDone] = resp
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
@@ -425,7 +430,7 @@ while nDone < trials.nTotal and not expStop:
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] +  "%2.2f\t"%probePos1[1] +
                                         "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%jitter)
         if dirOrLocalize:
-            oneTrialOfData +=  "%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f\t"%df['dy'][nDone] + "%.2f"%nWhenAfterimage
+            oneTrialOfData +=  "%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f\t"%df['dy'][nDone] + "%.2f"%afterimageGenesis
         else:
             oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
