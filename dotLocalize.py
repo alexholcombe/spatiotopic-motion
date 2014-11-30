@@ -7,7 +7,7 @@ import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
 dirOrLocalize = True
-autopilot = False
+autopilot = True
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -177,11 +177,10 @@ for locus in locationOfProbe: #location of the probe for the trial
         if dirOrLocalize:
             tilts = [0]
         for tilt in tilts: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
-            for jitter in [-1,0,1]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the second probe
-                probeLocationX = locus[0]+jitter
-                stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
+                probeLocationX = locus[0]
+                stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt})
 
-blockReps = 1
+blockReps = 3
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
@@ -358,8 +357,9 @@ while nDone < trials.nTotal and not expStop:
     yMultiplier = thisTrial['upDown']
     if not thisTrial['upDown']:
         yMultiplier = -1
-    probePos1= [ thisTrial['probeX']-thisTrial['tilt'],      thisTrial['probeY']*yMultiplier ]
-    probePos2 =[ thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1 ] #y of second location is simply vertical reflection of position 1
+    jitter = np.random.uniform(-2,2)
+    probePos1= [ thisTrial['probeX']+jitter-thisTrial['tilt'],      thisTrial['probeY']*yMultiplier ]
+    probePos2 =[ thisTrial['probeX']+jitter+thisTrial['tilt'],     probePos1[1]*-1 ] #y of second location is simply vertical reflection of position 1
     targetDot.setPos(targetDotPos)
     foilDot.setPos(foilDotPos)
     expStop = waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
@@ -382,7 +382,8 @@ while nDone < trials.nTotal and not expStop:
         if nDone==0: #initiate results dataframe
             print(thisTrial)  #debugON
             df = DataFrame(thisTrial, index=[nDone],
-                            columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
+                            columns = ['probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
+            df['jitter'] = jitter
             if dirOrLocalize:
                 df['respX'] = resp[0]
                 df['respY'] = resp[1]
@@ -392,6 +393,7 @@ while nDone < trials.nTotal and not expStop:
                 df['respLeftRight'] = resp
         else: #Not first trial. Add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
+            df['jitter'][nDone] = jitter
             if dirOrLocalize:
                 print("resp= ",resp)
                 df['respX'][nDone] = resp[0]
@@ -404,7 +406,7 @@ while nDone < trials.nTotal and not expStop:
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] +  "%2.2f\t"%probePos1[1] +
-                                        "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter'])
+                                        "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%jitter)
         if dirOrLocalize:
             oneTrialOfData +=  "%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f"%df['dy'][nDone]
         else:
