@@ -221,6 +221,7 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
         blackDot.draw()
     else:
         if nWhenAfterimage == 9999: #need to wait until person presses key to indicate afterimage has built up
+            event.clearEvents() #clear keypresses and mouse clicks
             waitingForPress = True
             while waitingForPress:
                 blackDot.draw()
@@ -424,7 +425,7 @@ while nDone < trials.nTotal and not expStop:
                 df['afterimageGenesis'][nDone] = afterimageGenesis
             else:
                 df['respLeftRight'][nDone] = resp
-            print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
+            print( df.loc[nDone-1:nDone] ) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] +  "%2.2f\t"%probePos1[1] +
