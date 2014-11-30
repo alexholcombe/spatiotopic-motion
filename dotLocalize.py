@@ -157,14 +157,14 @@ foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0,
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 mouseLocationMarker = visual.Circle(myWin,units=windowAndMouseUnits,radius=ballStdDev/2.)#,autoLog=autoLogging)
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
-clickContinueArea = visual.Rect(myWin,units='norm',width=.3,height=.3,fillColor=(-1,-1,0),autoLog=autoLogging)
+clickContinueArea = visual.Rect(myWin,units='norm',width=.8,height=.3,fillColor=(-.6,-.6,0),autoLog=autoLogging)
 clickContinueArea.setPos((-1,1))
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 
-beforeFirstTrialText = visual.TextStim(myWin,pos=(0, .95),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
+beforeFirstTrialText = visual.TextStim(myWin,pos=(.2, .95),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center',height=.03,units='norm',autoLog=autoLogging)
-NextRemindCountText = visual.TextStim(myWin,pos=(0,-.6),colorSpace='rgb',color= (1,1,1),alignHoriz='center', alignVert='center',height=.05,units='norm',autoLog=autoLogging)
+nextRemindCountText = visual.TextStim(myWin,pos=(-.95,.95),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='top',height=.05,units='norm',autoLog=autoLogging)
 
 locationOfProbe= np.array([[0,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
@@ -295,52 +295,55 @@ beforeFirstTrialText.setText(instructns)
 
 def waitBeforeTrial(nDone,respDeadline,expStop,stuffToDrawOnRespScreen):
     #displayDraw is a function instance to call to draw what want to between trials
-        if dirOrLocalize:
+    if dirOrLocalize:
+        betweenTrialsText.setText('CLICK in blue area to continue')
+        clickContinueArea.draw()
+    else:
+        betweenTrialsText.setText('Press SPACE to continue')
+    progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
+    nextRemindCountText.setText(progressMsg)
+    myClock.reset();
+    if dirOrLocalize:
+        betweenTrialsText.setText('CLICK in blue area to continue')
+        waitingForClick = True
+        while waitingForClick and respClock.getTime() < respDeadline:
+            m_x, m_y = myMouse.getPos()  # in the same units as the Window 
+            mouseLocationMarker.setPos((m_x, m_y)) #Because mouseLocationMarker is in same units as windowAndMouseUnits, and mouse returns windowAndMouseUnits, this has to work
+            mouse1, mouse2, mouse3 = myMouse.getPressed()
+            if myMouse.isPressedIn(clickContinueArea):
+                waitingForClick = False
+            if waitingForClick and (mouse1 or mouse2 or mouse3):
+               myWin.flip(); myWin.flip() #flicker everything to tell user registered your click but it's in wrong place
+            keysPressed = event.getKeys()
+            if 'escape' in keysPressed:
+                expStop = True
+            for x in stuffToDrawOnRespScreen:
+                x.draw()
             betweenTrialsText.setText('CLICK in blue area to continue')
+            if nDone==0:
+                beforeFirstTrialText.draw()
             clickContinueArea.draw()
-        else:
-            betweenTrialsText.setText('Press SPACE to continue')
-
-        myClock.reset();
-        if dirOrLocalize:
-            betweenTrialsText.setText('CLICK in blue area to continue')
-            waitingForClick = True
-            while waitingForClick and respClock.getTime() < respDeadline:
-                m_x, m_y = myMouse.getPos()  # in the same units as the Window 
-                mouseLocationMarker.setPos((m_x, m_y)) #Because mouseLocationMarker is in same units as windowAndMouseUnits, and mouse returns windowAndMouseUnits, this has to work
-                mouse1, mouse2, mouse3 = myMouse.getPressed()
-                if myMouse.isPressedIn(clickContinueArea):
-                    waitingForClick = False
-                if waitingForClick and (mouse1 or mouse2 or mouse3):
-                   myWin.flip(); myWin.flip() #flicker everything to tell user registered your click but it's in wrong place
-                keysPressed = event.getKeys()
-                if 'escape' in keysPressed:
-                    expStop = True
-                for x in stuffToDrawOnRespScreen:
-                    x.draw()
-                betweenTrialsText.setText('CLICK in blue area to continue')
-                if nDone==0:
-                    beforeFirstTrialText.draw()
-                clickContinueArea.draw()
-                mouseLocationMarker.draw()
-                betweenTrialsText.draw()
-                myWin.flip()
-        if not expStop and not waitingForClick: #person never responded, but timed out. Presumably because of autopilot or hit escape
-            waitingForPressBetweenTrials = True
-            betweenTrialsText.setText('While looking at the green dot, press SPACE to continue')
-            while waitingForPressBetweenTrials and myClock.getTime() < respDeadline:
-                if nDone==0:
-                    beforeFirstTrialText.draw()
-                respPromptText.draw()
-                betweenTrialsText.draw()
-                for x in stuffToDrawOnRespScreen:
-                    x.draw()
-                myWin.flip()
-                for key in event.getKeys():       #check if pressed abort-type key
-                      if key in ['escape']:
-                          expStop = True; waitingForPressBetweenTrials=False
-                      if key in ['space']:
-                          waitingForPressBetweenTrials=False
+            mouseLocationMarker.draw()
+            betweenTrialsText.draw()
+            nextRemindCountText.draw()
+            myWin.flip()
+    if not expStop and not waitingForClick: #person never responded, but timed out. Presumably because of autopilot or hit escape
+        waitingForPressBetweenTrials = True
+        betweenTrialsText.setText('While looking at the green dot, press SPACE to continue')
+        while waitingForPressBetweenTrials and myClock.getTime() < respDeadline:
+            if nDone==0:
+                beforeFirstTrialText.draw()
+            respPromptText.draw()
+            betweenTrialsText.draw()
+            for x in stuffToDrawOnRespScreen:
+                x.draw()
+            myWin.flip()
+            for key in event.getKeys():       #check if pressed abort-type key
+                  if key in ['escape']:
+                      expStop = True; waitingForPressBetweenTrials=False
+                  if key in ['space']:
+                      waitingForPressBetweenTrials=False
+    return expStop
 #end waiting between trials
 
 expStop = False
@@ -359,7 +362,7 @@ while nDone < trials.nTotal and not expStop:
     probePos2 =[ thisTrial['probeX']+thisTrial['tilt'],     probePos1[1]*-1 ] #y of second location is simply vertical reflection of position 1
     targetDot.setPos(targetDotPos)
     foilDot.setPos(foilDotPos)
-    waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
+    expStop = waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
 
     for n in range(totFrames): #Loop for the trial STIMULUS
         oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2)
@@ -407,12 +410,6 @@ while nDone < trials.nTotal and not expStop:
             oneTrialOfData += "%r"%resp
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
-            progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
-            NextRemindCountText.setText(progressMsg)
-            for i in range(10): #post-response interval before fixation preview comes up
-                NextRemindCountText.draw()
-                myWin.flip(clearBuffer=True)
-                        
             thisTrial=trials.next()
             myWin.clearBuffer()
         nDone+=1
@@ -429,12 +426,12 @@ if  nDone >0:
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
     #print('df.dtypes=\n',df.dtypes)
     df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
-        
+    #df['dist'] = 
+    #analyze cases where tilt==0
     tilt = df.loc[:,'tilt']
     neutralStimIdxs = df.loc[tilt==0]
     neutralStimIdxs = (tilt==0)
-    #print('neutralStimIdxs=\n',neutralStimIdxs)
-    #print('neutralStimIdxs.any()=',neutralStimIdxs.any())
+
     if len(neutralStimIdxs)>1:
       if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
         df['overCorrected']= np.nan
