@@ -179,12 +179,22 @@ trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
 #durations in frames
-initialDur = round(0.1*refreshRate) #target and foil dot without probe for the first 600 ms
-probeFirstDisappearance = round(0.5*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
-switchCues = round(0.6*refreshRate) # target and foil dots switch positions for 100 ms
-probeSecondAppearance = round(0.7*refreshRate) # probe returns on the other side of the horizontal meridian for 400 ms
-probeSecondDisappearance = round(1.1*refreshRate) # probe disappears
-oneCycleFrames = int( round( probeSecondDisappearance + 0.1*refreshRate ) )
+durWithoutProbe = 0.1
+durProbe = 0.4
+
+initialDurS = durWithoutProbe
+probeFirstDisappearanceS = initialDurS + durProbe
+switchCuesS = probeFirstDisappearanceS+durWithoutProbe
+probeSecondAppearanceS = switchCuesS + durWithoutProbe
+probeSecondDisappearanceS = probeSecondAppearanceS+durProbe
+#convert to frames
+initialDur = round(initialDurS*refreshRate) #target and foil dot without probe for the first 600 ms
+probeFirstDisappearance = round(probeFirstDisappearanceS*refreshRate) # probe disappears for 100 ms whilst target and foil dot remain the same
+switchCues = round(switchCuesS*refreshRate) # target and foil dots switch positions for 100 ms
+probeSecondAppearance = round(probeSecondAppearanceS*refreshRate) # probe returns on the other side of the horizontal meridian for 400 ms
+probeSecondDisappearance = round(probeSecondDisappearanceS*refreshRate) # probe disappears
+
+oneCycleFrames = int( round( probeSecondDisappearance + durWithoutProbe*refreshRate ) )
 totFrames = oneCycleFrames*3
 
 def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimulus function
