@@ -160,13 +160,14 @@ blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1
 mouseLocationMarker = visual.Circle(myWin,units=windowAndMouseUnits,radius=ballStdDev/2.)#,autoLog=autoLogging)
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 clickContinueArea = visual.Rect(myWin,units='norm',width=1,height=.6,fillColor=(-.6,-.6,0),autoLog=autoLogging)
-clickContinueArea.setPos((-1,1))
+clickContinueAreaX = 1; clickContinueAreaY = 1
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 
-beforeFirstTrialText = visual.TextStim(myWin,pos=(.2, .8),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
+beforeFirstTrialText = visual.TextStim(myWin,pos=(0, .8),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center',height=.03,units='norm',autoLog=autoLogging)
-nextRemindCountText = visual.TextStim(myWin,pos=(-.8,.8),colorSpace='rgb',color= (1,1,1),alignHoriz='center', alignVert='top',height=.03,units='norm',autoLog=autoLogging)
+nextRemindCountText = visual.TextStim(myWin,colorSpace='rgb',color= (1,1,1),alignHoriz='center', alignVert='top',height=.03,units='norm',autoLog=autoLogging)
+nextRemindCountTextX = 0.8; nextRemindCountTextY = .8
 
 locationOfProbe= np.array([[0,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
@@ -175,12 +176,13 @@ for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        tilts = [-2,0,2]
-        if dirOrLocalize:
-            tilts = [0]
-        for tilt in tilts: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
+        for infoRightSide in [False,True]: #text between trials and continue area on left side or right side
+            tilts = [-2,0,2]
+            if dirOrLocalize:
+                tilts = [0]
+            for tilt in tilts: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
                 probeLocationX = locus[0]
-                stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt})
+                stimList.append({'infoRightSide':infoRightSide,'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt})
 
 blockReps = 3
 trials = data.TrialHandler(stimList, blockReps)
@@ -251,7 +253,7 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
 
 if dirOrLocalize:
     myMouse = event.Mouse(visible = 'False',win=myWin)
-    header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY\tafterimageGenesis'
+    header = 'trialnum\tsubject\tinfoRightside\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY\tafterimageGenesis'
 else:
     header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespLeftRight'
 print(header, file=dataFile)
@@ -373,6 +375,9 @@ def waitBeforeTrial(nDone,respDeadline,expStop,stuffToDrawOnRespScreen):
 expStop = False
 nDone = 0
 while nDone < trials.nTotal and not expStop:
+    print(" thisTrial['infoRightSide']=", thisTrial['infoRightSide'])
+    clickContinueArea.setPos(  (clickContinueAreaX*(2*thisTrial['infoRightSide']-1), clickContinueAreaY) )
+    nextRemindCountText.setPos( (nextRemindCountTextX*(2*thisTrial['infoRightSide']-1), nextRemindCountTextY) )
     if thisTrial['startLeft']:
         targetDotPos=np.array([-5,0]) #target of saccades starts on left. 
         foilDotPos =np.array([5,0])  
@@ -437,10 +442,10 @@ while nDone < trials.nTotal and not expStop:
             else:
                 df['respLeftRight'][nDone] = resp
             print( df.loc[nDone-1:nDone] ) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
-        #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
-        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] +  "%2.2f\t"%probePos1[1] +
-                                        "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%jitter)
+         #   header = 'trialnum\tsubject\tinfoRightside\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY\tafterimageGenesis'
+        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%r\t"%thisTrial['infoRightSide'] + "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%2.2f\t"%probePos1[0] + 
+                                            "%2.2f\t"%probePos1[1] + "%r\t"%thisTrial['startLeft'] +"%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%jitter)
         if dirOrLocalize:
             oneTrialOfData +=  ("%.2f\t"%df['respX'][nDone]  + "%.2f\t"%df['respY'][nDone] + "%.2f\t"%df['dx'][nDone] + "%.2f\t"%df['dy'][nDone] +
                                                 "%.2f\t"%afterimageGenesis + "%.2f"%afterimageDur)
