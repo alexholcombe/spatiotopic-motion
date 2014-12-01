@@ -253,7 +253,7 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
 
 if dirOrLocalize:
     myMouse = event.Mouse(visible = 'False',win=myWin)
-    header = 'trialnum\tsubject\tinfoRightside\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY\tafterimageGenesis'
+    header = 'trialnum\tsubject\tinfoRightside\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespX\trespY\tdX\tdY\tafterimageGenesis\tafterimageDur'
 else:
     header = 'trialnum\tsubject\tprobeX\tprobeY\tprobePos1X\tprobePos1Y\tstartLeft\tupDown\ttilt\tjitter\trespLeftRight'
 print(header, file=dataFile)
@@ -264,7 +264,7 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
     if dirOrLocalize: #collect mouse click
         waitingForClick = True
         mouseMovedYet = False
-        myMouse.getRel() #resets relative to can detect first time mouse moves, and only then draw the marker
+        myMouse.getRel() #resets relative so can detect first time mouse moves, and only then draw the marker
         while waitingForClick and respClock.getTime() < respDeadline:
             if (myMouse.getRel()).any():
                 mouseMovedYet = True
@@ -274,7 +274,7 @@ def collectResponse(expStop, dirOrLocalize, stuffToDrawOnRespScreen):
             if mouse1 or mouse2 or mouse3:
                 waitingForClick = False
                 afterimageDur = afterimageDurClock.getTime()
-                print('afterimageDur=',afterimageDur)
+                #print('afterimageDur=',afterimageDur) #debugOFF
             keysPressed = event.getKeys()
             if 'escape' in keysPressed:
                 expStop = True
@@ -338,6 +338,7 @@ def waitBeforeTrial(nDone,respDeadline,expStop,stuffToDrawOnRespScreen):
             mouse1, mouse2, mouse3 = myMouse.getPressed()
             if myMouse.isPressedIn(clickContinueArea):
                 waitingForClick = False
+                event.clearEvents() 
             if waitingForClick and (mouse1 or mouse2 or mouse3):
                myWin.flip(); myWin.flip() #flicker everything to tell user registered your click but it's in wrong place
             keysPressed = event.getKeys()
@@ -375,8 +376,7 @@ def waitBeforeTrial(nDone,respDeadline,expStop,stuffToDrawOnRespScreen):
 expStop = False
 nDone = 0
 while nDone < trials.nTotal and not expStop:
-    print(" thisTrial['infoRightSide']=", thisTrial['infoRightSide'])
-    clickContinueArea.setPos(  (clickContinueAreaX*(2*thisTrial['infoRightSide']-1), clickContinueAreaY) )
+    clickContinueArea.setPos(  (clickContinueAreaX*(2*thisTrial['infoRightSide']-1), clickContinueAreaY) ) #left or right side
     nextRemindCountText.setPos( (nextRemindCountTextX*(2*thisTrial['infoRightSide']-1), nextRemindCountTextY) )
     if thisTrial['startLeft']:
         targetDotPos=np.array([-5,0]) #target of saccades starts on left. 
@@ -415,7 +415,6 @@ while nDone < trials.nTotal and not expStop:
     #myMouse.setVisible(False)
     if not expStop:
         if nDone==0: #initiate results dataframe
-            print(thisTrial)  #debugON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             df['jitter'] = jitter
