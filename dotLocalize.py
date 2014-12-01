@@ -15,7 +15,7 @@ if quitFinder:
     os.system(shellCmd)
 respClock = core.Clock(); myClock = core.Clock(); 
 afterimageDurClock = core.Clock()
-refreshRate = 60
+refreshRate = 75
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
@@ -60,11 +60,11 @@ ppLogF = logging.LogFile(logFname,
     filemode='w',#if you set this to 'a' it will append instead of overwriting
     level=logging.INFO)#errors, data and warnings will be sent to this logfile 
     
-scrn=0 #1 means second screen
+scrn=1 #1 means second screen
 widthPix =1024#1024  #monitor width in pixels
 heightPix =768#768  #monitor height in pixels
 monitorwidth = 40. #28.5 #monitor width in centimeters
-viewdist = 57.; #cm
+viewdist = 50.; #cm
 pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
 bgColor = [0,0,0] #"gray background"
 allowGUI = False
@@ -92,7 +92,7 @@ else: #checkRefreshEtc
                 #version="<your experiment version info>",
                 win=myWin,    ## a psychopy.visual.Window() instance; None = default temp window used; False = no win, no win.flips()
                 refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
-                verbose=True, ## True means report on everything 
+                verbose=False, ## True means report on everything 
                 userProcsDetailed=False  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
                                         #seems to require internet access, probably for process lookup
                 )
@@ -159,14 +159,14 @@ foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0,
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 mouseLocationMarker = visual.Circle(myWin,units=windowAndMouseUnits,radius=ballStdDev/2.)#,autoLog=autoLogging)
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
-clickContinueArea = visual.Rect(myWin,units='norm',width=.8,height=.3,fillColor=(-.6,-.6,0),autoLog=autoLogging)
+clickContinueArea = visual.Rect(myWin,units='norm',width=1,height=.6,fillColor=(-.6,-.6,0),autoLog=autoLogging)
 clickContinueArea.setPos((-1,1))
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
 
-beforeFirstTrialText = visual.TextStim(myWin,pos=(.2, .95),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
+beforeFirstTrialText = visual.TextStim(myWin,pos=(.2, .8),colorSpace='rgb',color = (-1,-1,-1),alignHoriz='center', alignVert='top', height = 0.05, units='norm',autoLog=autoLogging)
 respPromptText = visual.TextStim(myWin,pos=(0, -.3),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center', height = 0.07, units='norm',autoLog=autoLogging)
 betweenTrialsText = visual.TextStim(myWin,pos=(0, -.4),colorSpace='rgb',color =  (-1,-1,-1),alignHoriz='center', alignVert='center',height=.03,units='norm',autoLog=autoLogging)
-nextRemindCountText = visual.TextStim(myWin,pos=(-.95,.95),colorSpace='rgb',color= (1,1,1),alignHoriz='left', alignVert='top',height=.03,units='norm',autoLog=autoLogging)
+nextRemindCountText = visual.TextStim(myWin,pos=(-.8,.8),colorSpace='rgb',color= (1,1,1),alignHoriz='center', alignVert='top',height=.03,units='norm',autoLog=autoLogging)
 
 locationOfProbe= np.array([[0,1.5]])  # np.array([[-10,1.5],[0,1.5],[10,1.5]]) #left, centre, right
 #Potential other conditions:[-10,6.5],[0,6.5],[10,6.5],[-10,-3.5],[0,-3.5],[10,-3.5]
@@ -325,6 +325,7 @@ def waitBeforeTrial(nDone,respDeadline,expStop,stuffToDrawOnRespScreen):
         betweenTrialsText.setText('Press SPACE to continue')
     progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
     nextRemindCountText.setText(progressMsg)
+    event.clearEvents() #clear keypresses and mouse clicks
     myClock.reset();
     if dirOrLocalize:
         betweenTrialsText.setText('CLICK in blue area to continue')
@@ -387,6 +388,7 @@ while nDone < trials.nTotal and not expStop:
     targetDot.setPos(targetDotPos)
     foilDot.setPos(foilDotPos)
     expStop = waitBeforeTrial(nDone, respDeadline, expStop, stuffToDrawOnRespScreen=(targetDot,foilDot)) #show first frame over and over
+    event.clearEvents() #clear keypresses and mouse clicks
     nWhenAfterimage = 9999 #record nWhenAfterImage starts
     finished = False
     n=0
@@ -488,4 +490,4 @@ if  nDone >0:
         upDown= zeroTiltOnly.groupby('upDown')
         print('Summary of upDown\n',upDown.mean())
     tiltGrp= df.groupby('tilt')
-    print('Summary of tilt\n',np.around(tiltGrp.mean(),3))
+    print('Summary of tilt\n',tiltGrp.mean())
