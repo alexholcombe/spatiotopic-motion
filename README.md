@@ -20,4 +20,6 @@ First, target dot left->right->left->right (or the opposite direction) so partic
 5. Black dot appears in second location, 400 ms
 6. Target and foil dot alone, for 100 ms
 
+Only 100 ms after the saccade target moves, the probe appears. This provides little margin of error in saccade timing! In fact according to their eyetracker, participants were only on time in about 68% of trials (usually early rather than late). So I want to lengthen to 200ms, effect is still strong in me.
+
 They had no jitter of any locations, and tested only 3, which was probably not a good idea because it means seeing the second location is enough to know the right answer. So I  add jitter to the first location (and apply the same jitter value to the second location).

@@ -179,7 +179,7 @@ trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
 #durations in frames
-durWithoutProbe = 0.1
+durWithoutProbe = 0.2
 durProbe = 0.4
 
 initialDurS = durWithoutProbe
