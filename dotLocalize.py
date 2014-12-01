@@ -111,8 +111,8 @@ else: #checkRefreshEtc
                 if runInfo["windowIsFullScr"]: 
                     print("Your window is full-screen, which is good for timing.")
                     print('Possible issues: internet / wireless? bluetooth? recent startup (not finished)?')
-                    if len(runInfo['systemUserProcFlagged']):
-                        print('other programs running? (command, process-ID):',info['systemUserProcFlagged'])
+                    #if len(runInfo['systemUserProcFlagged']): #doesnt work if no internet
+                    #    print('other programs running? (command, process-ID):',info['systemUserProcFlagged'])
                         
             medianHz = 1000./runInfo['windowRefreshTimeMedian_ms']
             refreshMsg1= 'Median frames per second ~='+ str( np.round(medianHz,1) )

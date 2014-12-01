@@ -6,7 +6,7 @@ from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
-autopilot = True
+autopilot = False
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -17,7 +17,7 @@ ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
 fullscr=True
-refreshRate = 60
+refreshRate = 75
 infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
@@ -169,7 +169,7 @@ for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        for tilt in [-0.6,0,0.6]: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
+        for tilt in [0]: # [-0.6,0,0.6]: # # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})

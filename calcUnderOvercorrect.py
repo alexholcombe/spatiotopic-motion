@@ -27,7 +27,7 @@ def calcOverCorrected(df):
     startLeft = np.array( df['startLeft'] ) #make it a numpy array so can use its elementwise logical operators
     upDown = np.array( df['upDown'] )
     respLeftRight= np.array( df['respLeftRight'] )
-    overCorrected = np.logical_not( respLeftRight ) #elementwise not
+    overCorrected = respLeftRight # np.logical_not( respLeftRight ) #elementwise not
     #for canonical case. backslash means overcorrect, fwdslash means undercorrect
     #any departure from canonical case inverts the answer. Use XOR (^) to invert conditional on another boolean.
     startLeft_not_canonical = np.logical_not( startLeft ) #startLeft = True is canonical case. So, flip otherwise
