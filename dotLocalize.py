@@ -18,9 +18,9 @@ afterimageDurClock = core.Clock()
 refreshRate = 75
 ballStdDev = 0.8
 autoLogging = False
-participant = 'Hubert'
+participant = 'M'
 fullscr=True
-infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate':refreshRate }
+infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate':refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -154,8 +154,8 @@ if not demo:
     allowGUI = False
 myWin = openMyStimWindow()
 
-targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1, 1.0, -1), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
-foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (.8, 0, 1),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
+targetDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-.5, .3, -.5), size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
+foilDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (0, 0, 0 ),size=ballStdDev,autoLog=autoLogging, contrast=1, opacity = 1.0)
 blackDot = visual.ImageStim(myWin,mask='circle',colorSpace='rgb', color = (-1,-1,-1),size=ballStdDev,autoLog=autoLogging, contrast=0.5, opacity = 1.0)
 mouseLocationMarker = visual.Circle(myWin,units=windowAndMouseUnits,radius=ballStdDev/2.)#,autoLog=autoLogging)
 mouseLocationMarker.setFillColor((-.5,-.5,-.5), colorSpace='rgb')
@@ -177,7 +177,7 @@ for locus in locationOfProbe: #location of the probe for the trial
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
         for infoRightSide in [False,True]: #text between trials and continue area on left side or right side
-            tilts = [-2,0,2]
+            tilts = [0]
             if dirOrLocalize:
                 tilts = [0]
             for tilt in tilts: # [-2,0,2]: # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
@@ -228,7 +228,8 @@ def oneFrameOfStim(n,nWhenAfterimage,finished,targetDotPos,foilDotPos,probePos1,
             waitingForPress = True
             waitStartN = n
             while waitingForPress and ( (n-waitStartN)/refreshRate < respDeadline ):
-                blackDot.draw()
+                if n%4 <2:
+                    blackDot.draw()
                 targetDot.draw()
                 foilDot.draw()
                 myWin.flip()
