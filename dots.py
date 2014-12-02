@@ -6,6 +6,8 @@ from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
+from plotHelpers import plotPsychometricCurve
+
 autopilot = False
 quitFinder = False
 if quitFinder:
@@ -15,7 +17,7 @@ if quitFinder:
 trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
-participant = 'Hubert'
+participant = 'Hub'
 fullscr=True
 refreshRate = 75
 infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
@@ -169,17 +171,17 @@ for locus in locationOfProbe: #location of the probe for the trial
     probeLocationY = locus[1]
     for upDown in [False,True]: #switching between probe moving top to bottom; and bottom to top
       for startLeft in [False,True]: 
-        for tilt in [0]: # [-0.6,0,0.6]: # # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
+        for tilt in [-.4,0,.4]: # [-0.6,0,0.6]: # # [-0.875,0,0.875]: #adjusting whether the probe jump is vertical, or slanted. Tilt positive means second position to right
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
-blockReps = 1
+blockReps = 2
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
 #durations in frames
-durWithoutProbe = 0.2
+durWithoutProbe = 0.1
 durProbe = 0.4
 
 initialDurS = durWithoutProbe
@@ -355,3 +357,14 @@ if  nDone >0:
     ns = tiltGrp.sum() #want n per trial to scale data point size
     ns = list(ns['respLeftRight'])
     print('Summary of tilt\n',tiltGrp.mean())
+   
+    #Fit and plot data
+    fit = None
+    try:
+        intensityForCurveFitting = df['tilt']
+        resps = df['respLeftRight']
+        fit = data.FitWeibull(intensityForCurveFitting, resps, expectedMin=0, sems = 1.0/len(intensityForCurveFitting))
+    except:
+        print("Fit failed.")
+    plotDataAndPsychometricCurve(fit,intensities,resps,descendingPsycho,threshCriterion)
+
