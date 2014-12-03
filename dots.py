@@ -8,7 +8,7 @@ from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
 from plotHelpers import plotPsychometricCurve
 
-autopilot = False
+autopilot = True
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -17,10 +17,10 @@ if quitFinder:
 trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
-participant = 'Hub'
-fullscr=True
+participant = 'Hubert'
+fullscr=False
 refreshRate = 75
-infoFirst = {'Participant':participant, 'Check refresh etc':True, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
+infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
     order=[ 'Participant','Check refresh etc', 'Fullscreen (timing errors if not)'], 
@@ -303,7 +303,7 @@ while nDone < trials.nTotal and not expStop:
         print(oneTrialOfData, file= dataFile)
         if nDone< trials.nTotal-1:
             betweenTrialsText.draw()
-            progressMsg = 'Completed ' + str(nDone) + ' of ' + str(trials.nTotal) + ' trials'
+            progressMsg = 'Completed trial number ' + str(nDone) + ' (' + str(trials.nTotal) + ' trials in total )'
             NextRemindCountText.setText(progressMsg)
             NextRemindCountText.draw()
             myWin.flip(clearBuffer=True)
@@ -326,6 +326,11 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
+    fileNamePP = fileName + "_PSYCHOPY"
+    trials.saveAsWideText(fileNamePP) #After this, I can at leisure in a separate file develop code to analyze the data
+    fileNamePickle = fileName #.psydat will automatically be appended
+    trials.saveAsPickle(fileNamePickle)
+
     #Use pandas to calculate proportion correct at each level
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
     #print('df.dtypes=\n',df.dtypes)
