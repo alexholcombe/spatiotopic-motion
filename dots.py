@@ -19,7 +19,7 @@ ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
 fullscr=False
-refreshRate = 75
+refreshRate = 60
 infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
     title='Szinte & Cavanagh spatiotopic apparent motion', 
@@ -291,7 +291,9 @@ while nDone < trials.nTotal and not expStop:
             print(thisTrial)  #deubgON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
-            df['respLeftRight'] = respLeftRight              
+            df['respLeftRight'] = respLeftRight    
+            #trials.addData('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
+            trials.data.add('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
         else: #add this trial
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             df['respLeftRight'][nDone] = respLeftRight
@@ -330,7 +332,9 @@ if  nDone >0:
     trials.saveAsWideText(fileNamePP) #After this, I can at leisure in a separate file develop code to analyze the data
     fileNamePickle = fileName #.psydat will automatically be appended
     trials.saveAsPickle(fileNamePickle)
-
+    print("psychopy data summary:")
+    trials.printAsText(stimOut=['tilt'], #write summary data to screen 
+                      dataOut=['respLeftRight_mean','respLeftRight_std'])
     #Use pandas to calculate proportion correct at each level
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
     #print('df.dtypes=\n',df.dtypes)
