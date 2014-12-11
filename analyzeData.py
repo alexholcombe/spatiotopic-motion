@@ -1,6 +1,7 @@
 from psychopy.tools import filetools
 import inspect
 import psychopy_ext.stats
+import psychopy_ext.plot
 
 all_functions = inspect.getmembers(psychopy_ext, inspect.isfunction)
 print all_functions
@@ -33,7 +34,13 @@ groupedMeans = grouped.mean()
 print "mean at each tilt =", groupedMeans
 
 #have to use psychopy_ext to aggregate
-psychopy_ext.stats.aggregate(df, values="respLeftRight", cols="tilt") #, values=None, subplots=None, yerr=None, aggfunc='mean', order='natural')
+ag = psychopy_ext.stats.aggregate(df, values="respLeftRight", cols="tilt") #, values=None, subplots=None, yerr=None, aggfunc='mean', order='natural')
+print "ag = \n", ag
+#NEED MORE REALISTIC DATA
+#Need more realistic data
+plt = psychopy_ext.plot.Plot()
+plt.plot(ag, kind='line')
+plt.show()
 
 #test function fitting
 
