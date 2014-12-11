@@ -7,6 +7,9 @@ import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
 from plotHelpers import plotPsychometricCurve
+dataframeInPsychopy = False
+if not dataframeInPsychopy:
+    from dataRevisionProposal import saveAsWideText #stopgap measure until DataFrame fully part of psychopy
 
 autopilot = True
 quitFinder = False
@@ -288,13 +291,14 @@ while nDone < trials.nTotal and not expStop:
         else:
             respLeftRight = 1        
         if nDone==0: #initiate results dataframe
-            print(thisTrial)  #deubgON
+            print(thisTrial)  #debugON
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             df['respLeftRight'] = respLeftRight    
             #trials.addData('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
             trials.data.add('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
         else: #add this trial
+            df['respLeftRight'] = respLeftRight    
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             df['respLeftRight'][nDone] = respLeftRight
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
@@ -329,7 +333,13 @@ else:
     print("Experiment finished")
 if  nDone >0:
     fileNamePP = fileName + "_PSYCHOPY"
-    trials.saveAsWideText(fileNamePP) #After this, I can at leisure in a separate file develop code to analyze the data
+    if not dataframeInPsychopy:
+        dfFromPP = saveAsWideText(trials,fileNamePP)
+        print("dfFromPP=\n",dfFromPP)
+        print("dfFromPP.head =\n",dfFromPP.head)
+        dfFromPP.to_pickle(fileName+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with
+    else:
+        trials.saveAsWideText(fileNamePP) #After this, I can at leisure in a separate file develop code to analyze the data
     fileNamePickle = fileName #.psydat will automatically be appended
     trials.saveAsPickle(fileNamePickle)
     print("psychopy data summary:")

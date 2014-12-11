@@ -1,5 +1,5 @@
 import numpy as np
-from psychopy import visual, data, logging
+from psychopy import visual, data, logging, tools
 import itertools
 from math import log
 from copy import deepcopy
@@ -87,5 +87,8 @@ def plotPsychometricCurve(fit,IV_name,DV_name,intensities,resps,descendingPsycho
 #    pylab.savefig(outputFile)
 
 if __name__=='__main__': #test functions in this file
-    pass
+    dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
+    dat = tools.filetools.fromFile(dataFileName)
+    type(dat) #<class 'psychopy.data.DataHandler'>
+    dat.printAsText()
 
