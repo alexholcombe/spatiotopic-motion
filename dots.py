@@ -301,6 +301,7 @@ while nDone < trials.nTotal and not expStop:
             df['respLeftRight'] = respLeftRight    
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             df['respLeftRight'][nDone] = respLeftRight
+            trials.data.add('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
