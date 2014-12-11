@@ -9,15 +9,31 @@ print all_functions
 ##dat = tools.filetools.fromFile(dataFileName)
 #dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
 dataFileName="data/Hubert_spatiotopicMotion_11Dec2014_13-00_DataFrame.pickle"
-dat = filetools.fromFile(dataFileName)
-print "type(dat)=", type(dat) # <class 'pandas.core.frame.DataFrame'>
+df = filetools.fromFile(dataFileName)
+print "type(df)=", type(df) # <class 'pandas.core.frame.DataFrame'>
+print "df.dtypes=",df.dtypes #all "objects" for some reason
+df["text"]="hey this string" #remains as object, because string
+#df["text"].astype('str') #Dont know why can't force it to be a string, this is supposed to work http://stackoverflow.com/questions/22005911/convert-columns-to-string-in-pandas
+
+dg = df.convert_objects() #Attempt to infer better dtype for object columns. 
+##Better would be to convert before saving as pickle inside psychopy
+#Unfortunately, even strings get converted to numeric and if it cant be converted it becomes NaN 
+#http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.convert_objects.html
+#Actually seems it's not true, the below did not get converted from object
+#objects has to be used for heterogeneous data
+
 #Now I can test aggregate
 #dat.data seems to contain the columns I added
-dat.printAsText()
+print "df.head=\n", df.head()
 
-d= dat.data #<class 'psychopy.data.DataHandler'>
-
-#test function fitting
+#test plotting of data
+#dataframe aggregate
+grouped = df.groupby('tilt')
+groupedMeans = grouped.mean()
+print "mean at each tilt =", groupedMeans
 
 #have to use psychopy_ext to aggregate
 psychopy_ext.stats.aggregate(df, rows=None, cols=None, values=None, subplots=None, yerr=None, aggfunc='mean', unstacked=False, order='natural')
+
+#test function fitting
+
