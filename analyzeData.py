@@ -2,13 +2,19 @@ from psychopy.tools import filetools
 import inspect
 import psychopy_ext.stats
 import psychopy_ext.plot
+import pandas 
 
 #grab some data outputted from my program, so I can test some analysis code
 ##The psydat file format is literally just a pickled copy of the TrialHandler object that saved it. You can open it with:
 ##dat = tools.filetools.fromFile(dataFileName)
 #dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
-dataFileName="data/Hubert_spatiotopicMotion_11Dec2014_13-00_DataFrame.pickle"
-df = filetools.fromFile(dataFileName)
+#dataFileName="data/Hubert_spatiotopicMotion_11Dec2014_13-00_DataFrame.pickle"
+dataFileName ="data/Hubert_spatiotopicMotion_15Dec2014_15-18_PSYCHOPY.txt"
+if dataFileName.endswith('.pickle'):
+    df = filetools.fromFile(dataFileName)
+elif dataFileName.endswith('.txt'):
+    df = pandas.read_csv(dataFileName, delimiter='\t')
+
 print "type(df)=", type(df) # <class 'pandas.core.frame.DataFrame'>
 print "df.dtypes=",df.dtypes #all "objects" for some reason
 df["text"]="hey this string" #remains as object, because string

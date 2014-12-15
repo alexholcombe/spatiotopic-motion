@@ -8,8 +8,6 @@ from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
 from plotHelpers import plotPsychometricCurve
 dataframeInPsychopy = True #merged 10 December 2014
-if not dataframeInPsychopy:
-    from dataRevisionProposal import saveAsWideText #stopgap measure until DataFrame fully part of psychopy
 
 autopilot = True
 quitFinder = False
@@ -66,8 +64,8 @@ ppLogF = logging.LogFile(logFname,
 scrn=1 #1 means second screen
 widthPix =1024#1024  #monitor width in pixels
 heightPix =768#768  #monitor height in pixels
-monitorwidth = 39. #28.5 #monitor width in centimeters
-viewdist = 50.; #cm
+monitorwidth = 33. #39 #monitor width in centimeters
+viewdist = 62.; #cm
 pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
 bgColor = [0,0,0] #"gray background"
 allowGUI = False
@@ -179,7 +177,7 @@ for locus in locationOfProbe: #location of the probe for the trial
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
-blockReps = 2
+blockReps = 1 #2
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
@@ -334,8 +332,9 @@ else:
     print("Experiment finished")
 if  nDone >0:
     fileNamePP = fileName + "_PSYCHOPY"
-    dfFromPP = saveAsWideText(trials,fileNamePP)
-    print("dfFromPP=\n",dfFromPP)
+    dfFromPP = trials.saveAsWideText(fileNamePP)
+    print("dfFromPP=\n",dfFromPP) #should be  <class 'pandas.core.frame.DataFrame'>
+    print("df.dtypes=",df.dtypes) #all "objects" for some reason
     print("dfFromPP.head =\n",dfFromPP.head)
     dfFromPP.to_pickle(fileName+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
     fileNamePickle = fileName #.psydat will automatically be appended
