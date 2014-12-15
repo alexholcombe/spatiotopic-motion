@@ -7,7 +7,7 @@ import time, sys, platform, os, StringIO
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
 from plotHelpers import plotPsychometricCurve
-dataframeInPsychopy = False
+dataframeInPsychopy = True #merged 10 December 2014
 if not dataframeInPsychopy:
     from dataRevisionProposal import saveAsWideText #stopgap measure until DataFrame fully part of psychopy
 
@@ -334,13 +334,10 @@ else:
     print("Experiment finished")
 if  nDone >0:
     fileNamePP = fileName + "_PSYCHOPY"
-    if not dataframeInPsychopy:
-        dfFromPP = saveAsWideText(trials,fileNamePP)
-        print("dfFromPP=\n",dfFromPP)
-        print("dfFromPP.head =\n",dfFromPP.head)
-        dfFromPP.to_pickle(fileName+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with
-    else:
-        trials.saveAsWideText(fileNamePP) #After this, I can at leisure in a separate file develop code to analyze the data
+    dfFromPP = saveAsWideText(trials,fileNamePP)
+    print("dfFromPP=\n",dfFromPP)
+    print("dfFromPP.head =\n",dfFromPP.head)
+    dfFromPP.to_pickle(fileName+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
     fileNamePickle = fileName #.psydat will automatically be appended
     trials.saveAsPickle(fileNamePickle)
     print("psychopy data summary:")

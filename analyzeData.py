@@ -3,8 +3,6 @@ import inspect
 import psychopy_ext.stats
 import psychopy_ext.plot
 
-all_functions = inspect.getmembers(psychopy_ext, inspect.isfunction)
-print all_functions
 #grab some data outputted from my program, so I can test some analysis code
 ##The psydat file format is literally just a pickled copy of the TrialHandler object that saved it. You can open it with:
 ##dat = tools.filetools.fromFile(dataFileName)
@@ -36,7 +34,7 @@ print "mean at each tilt =", groupedMeans
 #have to use psychopy_ext to aggregate
 ag = psychopy_ext.stats.aggregate(df, values="respLeftRight", cols="tilt") #, values=None, subplots=None, yerr=None, aggfunc='mean', order='natural')
 print "ag = \n", ag
-#NEED MORE REALISTIC DATA
+#NEED MORE REALISTIC DATA. RUN MYSELF
 #Need more realistic data
 plt = psychopy_ext.plot.Plot()
 plt.plot(ag, kind='line')
