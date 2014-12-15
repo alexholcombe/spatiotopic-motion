@@ -333,8 +333,8 @@ else:
 if  nDone >0:
     fileNamePP = fileName + "_PSYCHOPY"
     dfFromPP = trials.saveAsWideText(fileNamePP)
-    print("dfFromPP=\n",dfFromPP) #should be  <class 'pandas.core.frame.DataFrame'>
-    print("df.dtypes=",df.dtypes) #all "objects" for some reason
+    print("dfFromPP type=\n",type(dfFromPP)) #should be  <class 'pandas.core.frame.DataFrame'>
+    print("df.dtypes=",dfFromPP.dtypes) #all "objects" for some reason
     print("dfFromPP.head =\n",dfFromPP.head)
     dfFromPP.to_pickle(fileName+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
     fileNamePickle = fileName #.psydat will automatically be appended

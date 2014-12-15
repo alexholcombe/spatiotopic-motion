@@ -17,10 +17,9 @@ elif dataFileName.endswith('.txt'):
 
 print "type(df)=", type(df) # <class 'pandas.core.frame.DataFrame'>
 print "df.dtypes=",df.dtypes #all "objects" for some reason
-df["text"]="hey this string" #remains as object, because string
-#df["text"].astype('str') #Dont know why can't force it to be a string, this is supposed to work http://stackoverflow.com/questions/22005911/convert-columns-to-string-in-pandas
+#strings in pandas pretty much objects. Dont know why can't force it to be a string, this is supposed to work http://stackoverflow.com/questions/22005911/convert-columns-to-string-in-pandas
 
-df= df.convert_objects() #Attempt to infer better dtype for object columns. 
+df= df.convert_objects(convert_numeric=True) #Infers better dtype for object columns, such as float64. Otherwise they will all be "object" type
 ##Better would be to convert before saving as pickle inside psychopy
 #Unfortunately, even strings get converted to numeric and if it cant be converted it becomes NaN 
 #http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.convert_objects.html
