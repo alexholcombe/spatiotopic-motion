@@ -9,7 +9,7 @@ from calcUnderOvercorrect import calcOverCorrected
 from plotHelpers import plotPsychometricCurve
 dataframeInPsychopy = True #merged 10 December 2014
 
-autopilot = True
+autopilot = False
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -19,7 +19,7 @@ trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
-fullscr=False
+fullscr=True
 refreshRate = 60
 infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
@@ -62,8 +62,8 @@ ppLogF = logging.LogFile(logFname,
     level=logging.INFO)#errors, data and warnings will be sent to this logfile 
     
 scrn=1 #1 means second screen
-widthPix =1024#1024  #monitor width in pixels
-heightPix =768#768  #monitor height in pixels
+widthPix =1440#1024  #monitor width in pixels
+heightPix =900#768  #monitor height in pixels
 monitorwidth = 33. #39 #monitor width in centimeters
 viewdist = 62.; #cm
 pixelperdegree = widthPix/ (atan(monitorwidth/viewdist) / np.pi*180)
@@ -113,7 +113,7 @@ else: #checkRefreshEtc
                     print("Your window is full-screen, which is good for timing.")
                     print('Possible issues: internet / wireless? bluetooth? recent startup (not finished)?')
                     if len(runInfo['systemUserProcFlagged']):
-                        print('other programs running? (command, process-ID):',info['systemUserProcFlagged'])
+                        print('other programs running? (command, process-ID):',runInfo['systemUserProcFlagged'])
                         
             medianHz = 1000./runInfo['windowRefreshTimeMedian_ms']
             refreshMsg1= 'Median frames per second ~='+ str( np.round(medianHz,1) )
@@ -177,7 +177,7 @@ for locus in locationOfProbe: #location of the probe for the trial
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
-blockReps = 1 #2
+blockReps = 2 #2
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
