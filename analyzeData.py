@@ -89,7 +89,6 @@ rightwardM = dirTilt[ dirTilt['startLeft']==True ]
 print 'dirTilt=\n', dirTilt
 
 import pylab
-#plot psychometric function on the right.
 ax1 = pylab.subplot(121)
 pylab.scatter(leftwardM['tilt'], leftwardM['respLeftRight'],
                       edgecolors=(1,0,0), facecolor=(1,0,0), label='leftward saccade')
@@ -105,6 +104,27 @@ pylab.text(0.5, 0.55, msg, horizontalalignment='left', fontsize=12)
 #pylab.xlim([-2,102])
 pylab.xlabel("tilt")
 pylab.ylabel("proportion respond 'right'")
-pylab.show()
 
 #test function fitting
+#fit curve
+import scipy
+def logistic(x, x0, k):
+     y = 1 / (1 + np.exp(-k*(x-x0)))
+     return y
+#scipy.stats.logistic.fit
+popt, pcov = scipy.optimize.curve_fit(logistic, leftwardM['tilt'], leftwardM['respLeftRight'])
+print 'parameters found by curve_fit = ', popt
+tiltMin = min( df['tilt'] )
+tiltMax = max( df['tilt'] )
+x = np.linspace(tiltMin, tiltMax, 50)
+y = logistic(x, *popt)
+
+#thresh = fit.inverse(threshVal)
+#print thresh
+
+#plot curve
+pylab.plot(x, y, 'k-')
+#pylab.plot([thresh, thresh],[0,threshVal],'k--') #vertical dashed line
+#pylab.plot([0, thresh],[threshVal,threshVal],'k--') #horizontal dashed line
+#pylab.title('threshold (%.2f) = %0.3f' %(threshVal, thresh))
+pylab.show()
