@@ -3,6 +3,7 @@ import inspect
 import psychopy_ext.stats
 import psychopy_ext.plot
 import pandas 
+from calcUnderOvercorrect import calcOverCorrected
 
 #grab some data outputted from my program, so I can test some analysis code
 ##The psydat file format is literally just a pickled copy of the TrialHandler object that saved it. You can open it with:
@@ -25,6 +26,19 @@ print "df.dtypes=",df.dtypes #all "objects" for some reason
 #dat.data seems to contain the columns I added
 print "df.head=\n", df.head()
 
+#add overcorrect to cases where tilt==0
+tilt = df.loc[:,'tilt']
+neutralStimIdxs = (tilt==0)
+#print('neutralStimIdxs=\n',neutralStimIdxs)
+if len(neutralStimIdxs)>1:
+  if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
+    forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respLeftRight']]
+    overCorrected = calcOverCorrected( forCalculatn )
+    print 'overCorrected=\n', overCorrected
+    df['overCorrected']= np.nan
+    df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
+print df
+STOP
 #test plotting of data
 #dataframe aggregate
 grouped = df.groupby('tilt')
@@ -69,11 +83,17 @@ if usePsychopy_ext:
     print "Showing plot with psychopy_ext.stats.aggregate"
     plt.show()
 
+leftwardM = dirTilt.loc[False]
+rightwardM = dirTilt.loc[True]
+print 'leftwardM.index=', leftwardM.index
+STOP
 import pylab
 #plot psychometric function on the right.
 ax1 = pylab.subplot(121)
 subplot_title = "leftward saccade"
 pylab.text(0, 0.95, subplot_title, horizontalalignment='center', fontsize=12)
+pylab.scatter(leftwardM.index, tiltMeans['respLeftRight'])
+
 pylab.scatter(tiltMeans.index, tiltMeans['respLeftRight'])
 #points = pylab.scatter(tiltMeans.index, tiltMeans['respLeftRight'], s=2, 
 #    edgecolors=(0,0,0), facecolors= 'none', linewidths=1,
