@@ -41,8 +41,23 @@ print 'groups=', grouped.groups #works
 dirTilt = grouped.mean() #this is a dataframe, not a DataFrameGroupBy
 print "mean at each dir, tilt =\n", dirTilt
 print "dirTilt.index = ", dirTilt.index #there is no column called 'tilt', instead it's the actual index, kinda like row names
-print "dirTilt.groups = ", dirTilt.groups  #doesnt work
+#dirTilt.groups  no groups, maybe because dataframe?
 #dirTilt.select()
+try:
+    print "dirTilt.loc[True]=\n", dirTilt.loc[True] #works!!!!
+except: pass
+try:
+    print "dirTilt.loc[0.4]=\n", dirTilt.loc[0.4] #doesnt work I presume because second dimension
+except: pass
+try:
+    print "dirTilt.loc[True, 0.4]=\n", dirTilt.loc[True, 0.4] #works!!!
+except: pass
+try:
+    print "dirTilt.loc['True']=\n", dirTilt.loc['True'] #doesnt work
+except: pass
+try:
+    print "dirTilt.loc['True','0.4']=\n", dirTilt.loc['True','0.4'] #doesnt work
+except: pass
 
 usePsychopy_ext = False
 if usePsychopy_ext:
