@@ -107,23 +107,31 @@ pylab.ylabel("proportion respond 'right'")
 
 #test function fitting
 #fit curve
-import scipy
+import scipy, sys
 def logistic(x, x0, k):
      y = 1 / (1 + np.exp(-k*(x-x0)))
      return y
 #scipy.stats.logistic.fit
-popt, pcov = scipy.optimize.curve_fit(logistic, leftwardM['tilt'], leftwardM['respLeftRight'])
-print 'parameters found by curve_fit = ', popt
+try:
+    paramsLeft, pcov = scipy.optimize.curve_fit(logistic, leftwardM['tilt'], leftwardM['respLeftRight'])
+except:
+    print 'leftward fit failed ', sys.exc_info()[0]
+try:
+    paramsRight, pcov = scipy.optimize.curve_fit(logistic, rightwardM['tilt'], rightwardM['respLeftRight'])
+except:
+    print 'rightward fit failed ', sys.exc_info()[0]
+    
 tiltMin = min( df['tilt'] )
 tiltMax = max( df['tilt'] )
 x = np.linspace(tiltMin, tiltMax, 50)
-y = logistic(x, *popt)
-
-#thresh = fit.inverse(threshVal)
-#print thresh
-
 #plot curve
-pylab.plot(x, y, 'k-')
+if paramsLeft is not None:
+    pylab.plot(x,  logistic(x, *paramsLeft) , 'r-')
+if paramsRight is not None:
+    pylab.plot(x,  logistic(x, *paramsRight) , 'r-')
+
+#thresh inverse
+
 #pylab.plot([thresh, thresh],[0,threshVal],'k--') #vertical dashed line
 #pylab.plot([0, thresh],[threshVal,threshVal],'k--') #horizontal dashed line
 #pylab.title('threshold (%.2f) = %0.3f' %(threshVal, thresh))
