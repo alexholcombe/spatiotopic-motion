@@ -87,17 +87,13 @@ dirTilt = dirTilt.reset_index() #back into columns
 leftwardM = dirTilt[ dirTilt['startLeft']==False ]
 rightwardM = dirTilt[ dirTilt['startLeft']==True ]
 print 'dirTilt=\n', dirTilt
-STOP
-#leftwardM = dirTilt.loc[False]
-#rightwardM = dirTilt.loc[True]
-print 'leftwardM.index=', leftwardM.index
 
 import pylab
 #plot psychometric function on the right.
 ax1 = pylab.subplot(121)
-pylab.scatter(leftwardM.index, leftwardM['respLeftRight'],
+pylab.scatter(leftwardM['tilt'], leftwardM['respLeftRight'],
                       edgecolors=(1,0,0), facecolor=(1,0,0), label='leftward saccade')
-pylab.scatter(rightwardM.index, rightwardM['respLeftRight'],
+pylab.scatter(rightwardM['tilt'], rightwardM['respLeftRight'],
                       edgecolors=(0,1,0), facecolor=(0,1,0), label='rightward saccade')
 pylab.legend()
 print  str( round( 100*df['overCorrected'].mean(), 2) )
@@ -110,12 +106,5 @@ pylab.text(0.5, 0.55, msg, horizontalalignment='left', fontsize=12)
 pylab.xlabel("tilt")
 pylab.ylabel("proportion respond 'right'")
 pylab.show()
-STOP
+
 #test function fitting
-#show overcorrect proportion in right hand panel
-
-#subplot_title = "function fit"
-pylab.subplot(122)
-
-subplot_title = "leftward saccade"
-pylab.text(0, 0.95, subplot_title, horizontalalignment='center', fontsize=12)
