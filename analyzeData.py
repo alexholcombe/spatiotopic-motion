@@ -28,15 +28,49 @@ print "df.head=\n", df.head()
 #test plotting of data
 #dataframe aggregate
 grouped = df.groupby('tilt')
-groupedMeans = grouped.mean()
-print "mean at each tilt =", groupedMeans
+tiltMeans = grouped.mean()
+print "mean at each tilt =\n", tiltMeans
+print "tiltMeans.index = ", tiltMeans.index #there is no column called 'tilt', instead it's the actual index, kinda like row names
 
-#have to use psychopy_ext to aggregate
-ag = psychopy_ext.stats.aggregate(df, values="respLeftRight", cols="tilt") #, values=None, subplots=None, yerr=None, aggfunc='mean', order='natural')
-print "ag = \n", ag
-plt = psychopy_ext.plot.Plot()
-plt.plot(ag, kind='line')
-plt.show()
+grouped = df.groupby(['startLeft','tilt'])
+for name in grouped: #this works
+    print name
+grouped.get_group((True, 0.4)) #combo of startLeft and tilt
+print 'groups=', grouped.groups #works
 
+dirTilt = grouped.mean() #this is a dataframe, not a DataFrameGroupBy
+print "mean at each dir, tilt =\n", dirTilt
+print "dirTilt.index = ", dirTilt.index #there is no column called 'tilt', instead it's the actual index, kinda like row names
+print "dirTilt.groups = ", dirTilt.groups  #doesnt work
+#dirTilt.select()
+
+usePsychopy_ext = False
+if usePsychopy_ext:
+    #have to use psychopy_ext to aggregate
+    ag = psychopy_ext.stats.aggregate(df, values="respLeftRight", cols="tilt") #, values=None, subplots=None, yerr=None, aggfunc='mean', order='natural')
+    print "ag = \n", ag
+    plt = psychopy_ext.plot.Plot()
+    plt.plot(ag, kind='line')
+    print "Showing plot with psychopy_ext.stats.aggregate"
+    plt.show()
+
+import pylab
+#plot psychometric function on the right.
+ax1 = pylab.subplot(121)
+subplot_title = "leftward saccade"
+pylab.text(0, 0.95, subplot_title, horizontalalignment='center', fontsize=12)
+pylab.scatter(tiltMeans.index, tiltMeans['respLeftRight'])
+#points = pylab.scatter(tiltMeans.index, tiltMeans['respLeftRight'], s=2, 
+#    edgecolors=(0,0,0), facecolors= 'none', linewidths=1,
+#    zorder=10, #make sure the points plot on top of the line
+#    )
+#pylab.ylim([-0.01,1.01])
+#pylab.xlim([-2,102])
+pylab.xlabel("tilt")
+pylab.ylabel("proportion respond 'right'")
+pylab.show()
 #test function fitting
+#show overcorrect proportion in right hand panel
+subplot_title = "rightward saccade"
+pylab.subplot(122)
 
