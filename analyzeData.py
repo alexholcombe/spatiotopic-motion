@@ -73,7 +73,6 @@ try:
     print "dirTilt.loc['True','0.4']=\n", dirTilt.loc['True','0.4'] #doesnt work
 except: pass
 #dirTilt.select()
-STOP
 usePsychopy_ext = False
 if usePsychopy_ext:
     #have to use psychopy_ext to aggregate
@@ -84,8 +83,13 @@ if usePsychopy_ext:
     print "Showing plot with psychopy_ext.stats.aggregate"
     plt.show()
 
-leftwardM = dirTilt.loc[False]
-rightwardM = dirTilt.loc[True]
+dirTilt = dirTilt.reset_index() #back into columns
+leftwardM = dirTilt[ dirTilt['startLeft']==False ]
+rightwardM = dirTilt[ dirTilt['startLeft']==True ]
+print 'dirTilt=\n', dirTilt
+STOP
+#leftwardM = dirTilt.loc[False]
+#rightwardM = dirTilt.loc[True]
 print 'leftwardM.index=', leftwardM.index
 
 import pylab

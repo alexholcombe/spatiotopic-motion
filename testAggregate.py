@@ -1,6 +1,7 @@
 #after taking mean, get out multiindex
 #Trying to understand how to access the content of a multiindex dataframe
-#Summary, after its grouped you can only access by first dimension, or by entire group, and only with loc? 
+#Summary, after its grouped you can only access by first dimension, or by entire group, and only with loc? Thats if you Multiindex it but
+#at end of file I show how to avoid those problems by keeping things flat instead of hierarchical index.
 import pandas as pd
 from numpy.random import randn
 df = pd.DataFrame({'A' : ['foo', 'bar', 'foo', 'bar','foo','bar'], #from http://pandas.pydata.org/pandas-docs/stable/groupby.html
@@ -35,3 +36,5 @@ g = df.groupby(['A', 'B'])
 dgM = g.mean()
 dgM = dgM.reset_index() #back into columns
 
+dgM.loc[ dgM['A']=='bar', 'C' ] 
+dgM.loc[ dgM['A']=='bar' ]
