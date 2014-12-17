@@ -1,5 +1,6 @@
 from psychopy.tools import filetools
 import inspect
+import numpy as np
 import psychopy_ext.stats
 import psychopy_ext.plot
 import pandas 
@@ -11,7 +12,7 @@ from calcUnderOvercorrect import calcOverCorrected
 #dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
 #dataFileName="data/Hubert_spatiotopicMotion_11Dec2014_13-00_DataFrame.pickle"
 #dataFileName ="data/Hubert_spatiotopicMotion_15Dec2014_15-18_PSYCHOPY.txt"
-dataFileName="data/Hubert_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
+dataFileName="data/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
 
 if dataFileName.endswith('.pickle'):
     df = filetools.fromFile(dataFileName)
@@ -37,8 +38,7 @@ if len(neutralStimIdxs)>1:
     print 'overCorrected=\n', overCorrected
     df['overCorrected']= np.nan
     df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
-print df
-STOP
+    
 #test plotting of data
 #dataframe aggregate
 grouped = df.groupby('tilt')
@@ -51,12 +51,12 @@ for name in grouped: #this works
     print name
 grouped.get_group((True, 0.4)) #combo of startLeft and tilt
 print 'groups=', grouped.groups #works
-
 dirTilt = grouped.mean() #this is a dataframe, not a DataFrameGroupBy
 print "mean at each dir, tilt =\n", dirTilt
 print "dirTilt.index = ", dirTilt.index #there is no column called 'tilt', instead it's the actual index, kinda like row names
+# MultiIndex [(False, -0.4), (False, 0.0), (False, 0.4), (True, -0.4), (True, 0.0), (True, 0.4)]
 #dirTilt.groups  no groups, maybe because dataframe?
-#dirTilt.select()
+#dirTilt = dirTilt.reset_index() #thanks Chris Said, except it *reduces* the number of cases that work below by one
 try:
     print "dirTilt.loc[True]=\n", dirTilt.loc[True] #works!!!!
 except: pass
@@ -72,7 +72,8 @@ except: pass
 try:
     print "dirTilt.loc['True','0.4']=\n", dirTilt.loc['True','0.4'] #doesnt work
 except: pass
-
+#dirTilt.select()
+STOP
 usePsychopy_ext = False
 if usePsychopy_ext:
     #have to use psychopy_ext to aggregate
@@ -86,26 +87,31 @@ if usePsychopy_ext:
 leftwardM = dirTilt.loc[False]
 rightwardM = dirTilt.loc[True]
 print 'leftwardM.index=', leftwardM.index
-STOP
+
 import pylab
 #plot psychometric function on the right.
 ax1 = pylab.subplot(121)
-subplot_title = "leftward saccade"
-pylab.text(0, 0.95, subplot_title, horizontalalignment='center', fontsize=12)
-pylab.scatter(leftwardM.index, tiltMeans['respLeftRight'])
+pylab.scatter(leftwardM.index, leftwardM['respLeftRight'],
+                      edgecolors=(1,0,0), facecolor=(1,0,0), label='leftward saccade')
+pylab.scatter(rightwardM.index, rightwardM['respLeftRight'],
+                      edgecolors=(0,1,0), facecolor=(0,1,0), label='rightward saccade')
+pylab.legend()
+print  str( round( 100*df['overCorrected'].mean(), 2) )
+msg = 'proportion overCorrected at 0 tilt = ' +  str( round( 100*df['overCorrected'].mean(), 2) ) + \
+                  '% of ' + str( df['overCorrected'].count() ) + ' trials'
+pylab.text(0.5, 0.55, msg, horizontalalignment='left', fontsize=12)
 
-pylab.scatter(tiltMeans.index, tiltMeans['respLeftRight'])
-#points = pylab.scatter(tiltMeans.index, tiltMeans['respLeftRight'], s=2, 
-#    edgecolors=(0,0,0), facecolors= 'none', linewidths=1,
-#    zorder=10, #make sure the points plot on top of the line
-#    )
 #pylab.ylim([-0.01,1.01])
 #pylab.xlim([-2,102])
 pylab.xlabel("tilt")
 pylab.ylabel("proportion respond 'right'")
 pylab.show()
+STOP
 #test function fitting
 #show overcorrect proportion in right hand panel
-subplot_title = "rightward saccade"
+
+#subplot_title = "function fit"
 pylab.subplot(122)
 
+subplot_title = "leftward saccade"
+pylab.text(0, 0.95, subplot_title, horizontalalignment='center', fontsize=12)
