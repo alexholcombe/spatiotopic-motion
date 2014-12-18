@@ -34,8 +34,7 @@ def calcOverCorrected(df):
     overCorrected = np.logical_xor( overCorrected, startLeft_not_canonical )
     return overCorrected
 
-test = False
-if test:
+if __name__=='__main__':  #Running this helper file, must want to test functions in this file
     data = {'tilt': [0,0,-2,-2,0], 'startLeft':[True, True,True,True,False], 'upDown':[True, True,True,False,False], 'respLeftRight':[False,True,True,True,False]}
     df = DataFrame(data , #index=[nDone],
                                 columns = ['tilt','startLeft','upDown','respLeftRight']) #columns included purely to specify their order
