@@ -227,5 +227,5 @@ if __name__=='__main__':  #Running this helper file, must want to test functions
     #dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
     dataFileName="data/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
     fig = plotDataAndPsychometricCurve(None, dataFileName)
-    pylab.savefig('figures/Alex.png') #, bbox_inches='tight')
+    pylab.savefig('figures/Alex.jpg') #, bbox_inches='tight')
 
