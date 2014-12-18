@@ -137,19 +137,26 @@ except Exception as e:
 
 threshVal = 0.5
 pylab.plot([tiltMin, tiltMax],[threshVal,threshVal],'k--') #horizontal dashed line
-
+overCorrectAmts = list()
 if paramsLeft is not None:
     pylab.plot(x,  logistic(x, *paramsLeft) , 'r-')
     print paramsLeft
     threshL = inverseLogistic(threshVal, paramsLeft[0], paramsLeft[1])
     print 'threshL = ', threshL
+    overCorrectAmts.append(threshL)
     pylab.plot([threshL, threshL],[0,threshVal],'g--') #vertical dashed line
     pylab.title('threshold (%.2f) = %0.3f' %(threshVal, threshL))
 if paramsRight is not None:
     pylab.plot(x,  logistic(x, *paramsRight) , 'g-')
     threshR = inverseLogistic(threshVal, paramsRight[0], paramsRight[1])
     print 'threshR = ', threshR
+    overCorrectAmts.append(-1*threshR)
     pylab.plot([threshR, threshR],[0,threshVal],'g--') #vertical dashed line
     pylab.title('threshold (%.2f) = %0.3f' %(threshVal, threshR))
-    
 pylab.show()
+if len(overCorrectAmts)==0:
+    print 'Failed both fits so cant tell you average over/under correction amount'
+else:
+    print 'Average overcorrection (negative means undercorrection) = ', np.mean(overCorrectAmts)
+
+    
