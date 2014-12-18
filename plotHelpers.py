@@ -141,8 +141,13 @@ def plotDataAndPsychometricCurve(df, dataFileName):
         msg3= 'Failed both fits so cant tell you average over/under correction amount'
     else:
         msg3= 'Average tilt needed to compensate overcorrection\n (negative indicates undercorrection)\n = ' + str( np.round( np.mean(overCorrectAmts), 2) )
-    pylab.text(0.52,0.55, msg3, horizontalalignment='left', fontsize=12, linespacing=2.0)
-    pylab.show() #pauses until window manually closed
+    pylab.text(0.52,0.45, msg3, horizontalalignment='left', fontsize=12, linespacing=2.0)
+    #pylab.savefig('figures/Alex.jpg') #, bbox_inches='tight')
+    pylab.savefig('figures/Alex.png') #, bbox_inches='tight')
+    #pylab.savefig('figures/Alex.jpg') #, bbox_inches='tight')
+
+    print('The plot has been saved, as Alex.png')
+    
     return pylab.gcf() #return current figure
         
 def plotStaircaseDataAndPsychometricCurve(fit,IV_name,DV_name,intensities,resps,descendingPsycho,threshCriterion):
@@ -227,5 +232,10 @@ if __name__=='__main__':  #Running this helper file, must want to test functions
     #dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
     dataFileName="data/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
     fig = plotDataAndPsychometricCurve(None, dataFileName)
-    pylab.savefig('figures/Alex.jpg') #, bbox_inches='tight')
+    #doesnt work outside that namespace
+    #pylab.savefig('figures/Alex.jpg') #, bbox_inches='tight')
+    #pylab.savefig('figures/Alex.png') #, bbox_inches='tight')
+
+    pylab.show() #pauses until window manually closed. Have to save before calling this, because closing the window loses the figure
+
 
