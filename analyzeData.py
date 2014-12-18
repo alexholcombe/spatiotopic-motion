@@ -3,7 +3,7 @@ import inspect
 import numpy as np
 import psychopy_ext.stats
 import psychopy_ext.plot
-import pandas 
+import pandas
 from calcUnderOvercorrect import calcOverCorrected
 
 #grab some data outputted from my program, so I can test some analysis code
@@ -105,34 +105,51 @@ pylab.text(0.5, 0.55, msg, horizontalalignment='left', fontsize=12)
 pylab.xlabel("tilt")
 pylab.ylabel("proportion respond 'right'")
 
+#psychometric curve basics
+tiltMin = min( df['tilt'] )
+tiltMax = max( df['tilt'] )
+x = np.linspace(tiltMin, tiltMax, 50)
+
 #test function fitting
 #fit curve
 import scipy, sys
 def logistic(x, x0, k):
      y = 1 / (1 + np.exp(-k*(x-x0)))
      return y
+def inverseLogistic(y, x0, k):
+    linear = np.log ( y / (1-y) )
+    #linear = -k*(x-x0)
+    #x-x0 = linear/-k
+    #x= linear/-k + x0
+    x = linear/-k + x0
+    return x
+
 #scipy.stats.logistic.fit
+paramsLeft = None; paramsRight = None
 try:
-    paramsLeft, pcov = scipy.optimize.curve_fit(logistic, leftwardM['tilt'], leftwardM['respLeftRight'])
-except:
-    print 'leftward fit failed ', sys.exc_info()[0]
+    paramsLeft, pcov = scipy.optimize.curve_fit(logistic, leftwardM['tilt'], leftwardM['respLeftRight'], p0 = [0, 6])
+except Exception as e:
+    print 'leftward fit failed ', e #sys.exc_info()[0]
 try:
-    paramsRight, pcov = scipy.optimize.curve_fit(logistic, rightwardM['tilt'], rightwardM['respLeftRight'])
-except:
-    print 'rightward fit failed ', sys.exc_info()[0]
-    
-tiltMin = min( df['tilt'] )
-tiltMax = max( df['tilt'] )
-x = np.linspace(tiltMin, tiltMax, 50)
-#plot curve
+    paramsRight, pcov = scipy.optimize.curve_fit(logistic, rightwardM['tilt'], rightwardM['respLeftRight'], p0 = [0, 6])
+except Exception as e:
+    print 'rightward fit failed ', e #sys.exc_info()[0]
+
+threshVal = 0.5
+pylab.plot([tiltMin, tiltMax],[threshVal,threshVal],'k--') #horizontal dashed line
+
 if paramsLeft is not None:
     pylab.plot(x,  logistic(x, *paramsLeft) , 'r-')
+    print paramsLeft
+    threshL = inverseLogistic(threshVal, paramsLeft[0], paramsLeft[1])
+    print 'threshL = ', threshL
+    pylab.plot([threshL, threshL],[0,threshVal],'g--') #vertical dashed line
+    pylab.title('threshold (%.2f) = %0.3f' %(threshVal, threshL))
 if paramsRight is not None:
-    pylab.plot(x,  logistic(x, *paramsRight) , 'r-')
-
-#thresh inverse
-
-#pylab.plot([thresh, thresh],[0,threshVal],'k--') #vertical dashed line
-#pylab.plot([0, thresh],[threshVal,threshVal],'k--') #horizontal dashed line
-#pylab.title('threshold (%.2f) = %0.3f' %(threshVal, thresh))
+    pylab.plot(x,  logistic(x, *paramsRight) , 'g-')
+    threshR = inverseLogistic(threshVal, paramsRight[0], paramsRight[1])
+    print 'threshR = ', threshR
+    pylab.plot([threshR, threshR],[0,threshVal],'g--') #vertical dashed line
+    pylab.title('threshold (%.2f) = %0.3f' %(threshVal, threshR))
+    
 pylab.show()
