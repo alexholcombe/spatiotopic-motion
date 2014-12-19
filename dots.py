@@ -48,7 +48,7 @@ if autopilot:
     respDeadline = 0.1
 timeAndDateStr = time.strftime("%d%b%Y_%H-%M", time.localtime()) 
 if os.path.isdir('.'+os.sep+'data'):
-    dataDir='data'
+    dataDir='data/raw'
 else:
     print('"data" directory does not exist, so saving data in present working directory')
     dataDir='.'
