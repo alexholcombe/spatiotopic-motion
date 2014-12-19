@@ -24,5 +24,8 @@ Only 100 ms after the saccade target moves, the probe appears. This provides lit
 
 They had no jitter of any locations, and tested only 3, which was probably not a good idea because it means seeing the second location is enough to know the right answer. So I  add jitter to the first location (and apply the same jitter value to the second location).
 
-Sample data from Alex, 48 trials per tilt
+Sample data from Alex, 48 trials per tilt, analyzed in python
 ![plot](https://github.com/alexholcombe/spatiotopic-motion/blob/master/figures/Alex.png "Example results plot")
+
+###Offline data analysis
+Occurs in R, in analyze folder
