@@ -4,12 +4,13 @@ import numpy as np
 from copy import deepcopy
 from math import atan, cos, sin, pi, sqrt, pow
 import time, sys, platform, os, StringIO
+import pylab
 from pandas import DataFrame
 from calcUnderOvercorrect import calcOverCorrected
-from plotHelpers import plotPsychometricCurve
+from plotHelpers import plotDataAndPsychometricCurve
 dataframeInPsychopy = True #merged 10 December 2014
 
-autopilot = False
+autopilot = True
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
@@ -19,7 +20,7 @@ trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
-fullscr=True
+fullscr=False
 refreshRate = 60
 infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
 OK = gui.DlgFromDict(dictionary=infoFirst, 
@@ -52,11 +53,12 @@ if os.path.isdir('.'+os.sep+'data'):
 else:
     print('"data" directory does not exist, so saving data in present working directory')
     dataDir='.'
-fileName = os.path.join(dataDir, participant+'_spatiotopicMotion_'+timeAndDateStr)
-dataFile = open(fileName+'.txt', 'w')  # sys.stdout  #StringIO.StringIO()
-saveCodeCmd = 'cp \'' + sys.argv[0] + '\' '+ fileName + '.py'
+fName = participant+'_spatiotopicMotion_'+timeAndDateStr
+fileNameWithPath = os.path.join(dataDir, fName)
+dataFile = open(fileNameWithPath+'.txt', 'w')  # sys.stdout  #StringIO.StringIO()
+saveCodeCmd = 'cp \'' + sys.argv[0] + '\' '+ fileNameWithPath + '.py'
 os.system(saveCodeCmd)  #save a copy of the code as it was when that subject was run
-logFname = fileName+'.log' 
+logFname = fileNameWithPath+'.log' 
 ppLogF = logging.LogFile(logFname, 
     filemode='w',#if you set this to 'a' it will append instead of overwriting
     level=logging.INFO)#errors, data and warnings will be sent to this logfile 
@@ -331,13 +333,13 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
-    fileNamePP = fileName + "_PSYCHOPY"
+    fileNamePP = fileNameWithPath + "_PSYCHOPY"
     dfFromPP = trials.saveAsWideText(fileNamePP)
     print("dfFromPP type=\n",type(dfFromPP)) #should be  <class 'pandas.core.frame.DataFrame'>
     print("df.dtypes=",dfFromPP.dtypes) #all "objects" for some reason
     print("dfFromPP.head =\n",dfFromPP.head)
-    dfFromPP.to_pickle(fileName+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
-    fileNamePickle = fileName #.psydat will automatically be appended
+    dfFromPP.to_pickle(fileNameWithPath+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
+    fileNamePickle = fileNameWithPath #.psydat will automatically be appended
     trials.saveAsPickle(fileNamePickle)
     print("psychopy data summary:")
     trials.printAsText(stimOut=['tilt'], #write summary data to screen 
@@ -375,12 +377,9 @@ if  nDone >0:
     print('Summary of tilt\n',tiltGrp.mean())
    
     #Fit and plot data
-    fit = None
-    try:
-        intensityForCurveFitting = df['tilt']
-        resps = df['respLeftRight']
-        fit = data.FitWeibull(intensityForCurveFitting, resps, expectedMin=0, sems = 1.0/len(intensityForCurveFitting))
-    except:
-        print("Fit failed.")
-    plotDataAndPsychometricCurve(fit,intensities,resps,descendingPsycho,threshCriterion)
+    fig = plotDataAndPsychometricCurve(df, dataFileName=None)
+    figFnameWithPath = os.path.join('figures/', fName + '.png')
+    pylab.savefig( figFnameWithPath ) #, bbox_inches='tight')
+    print('The plot has been saved, as', figFnameWithPath)
+    pylab.show() #pauses until window manually closed. Have to save before calling this, because closing the window loses the figure
 
