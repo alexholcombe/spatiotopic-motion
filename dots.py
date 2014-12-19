@@ -333,7 +333,7 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
-    fileNamePP = fileNameWithPath + "_PSYCHOPY"
+    PP = fileNameWithPath + "_PSYCHOPY"
     dfFromPP = trials.saveAsWideText(fileNamePP)
     print("dfFromPP type=\n",type(dfFromPP)) #should be  <class 'pandas.core.frame.DataFrame'>
     print("df.dtypes=",dfFromPP.dtypes) #all "objects" for some reason
@@ -348,33 +348,6 @@ if  nDone >0:
     #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
     #print('df.dtypes=\n',df.dtypes)
     df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
-        
-    tilt = df.loc[:,'tilt']
-    neutralStimIdxs = df.loc[tilt==0]
-    neutralStimIdxs = (tilt==0)
-    #print('neutralStimIdxs=\n',neutralStimIdxs)
-    #print('neutralStimIdxs.any()=',neutralStimIdxs.any())
-    if len(neutralStimIdxs)>1:
-      if neutralStimIdxs.any(): #Calculate over/under-correction, which is only interpretable when tilt=0
-        forCalculatn = df.loc[neutralStimIdxs, ['tilt','startLeft','upDown','respLeftRight']]
-        overCorrected = calcOverCorrected( forCalculatn )
-        print('overCorrected=\n',overCorrected)
-        df['overCorrected']= np.nan
-        df.loc[neutralStimIdxs, 'overCorrected'] = overCorrected
-        #print('dataframe with answer added=\n',df) #debug
-        #Summarise under over correct
-        print('For 0 tilt, overcorrection responses=', round( 100*df['overCorrected'].mean(), 2),
-                  '% of ', df['overCorrected'].count(), ' trials', sep='')
-        #Calculate mean for each factor level
-        zeroTiltOnly = df.loc[neutralStimIdxs,:]
-        startLeft = zeroTiltOnly.groupby('startLeft')
-        print('Summary of startLeft\n',startLeft.mean())
-        upDown= zeroTiltOnly.groupby('upDown')
-        print('Summary of upDown\n',upDown.mean())
-    tiltGrp= df.groupby('tilt')
-    ns = tiltGrp.sum() #want n per trial to scale data point size
-    ns = list(ns['respLeftRight'])
-    print('Summary of tilt\n',tiltGrp.mean())
    
     #Fit and plot data
     fig = plotDataAndPsychometricCurve(df, dataFileName=None)
