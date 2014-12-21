@@ -13,11 +13,8 @@ expName="SzinteCavanagh"
 # dat[,colsNotInThisOne] = -999 #dummy value
 # dat = rbind(dat,datE1)
 
-
-  source('analyseExps/analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
-  if (iv=="speed") { #if not, don't bother
-    source('analyseExps/plotIndividDataWithPsychometricCurves.R')
-  }
+source('analyseExps/analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
+source('analyseExps/plotIndividDataWithPsychometricCurves.R')
   #should also do it normalizing by subjects' speed limits
   source("analyseExps/extractThreshesAndPlot.R") #provides threshes, plots
 
