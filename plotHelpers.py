@@ -227,8 +227,8 @@ if __name__=='__main__':  #Running this helper file, must want to test functions
     #dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
     dataFileName="data/raw/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
     fig = plotDataAndPsychometricCurve(None, dataFileName)
-    pylab.savefig('figures/Alex.png') #, bbox_inches='tight')
-    print('The plot has been saved, as Alex.png')
+    pylab.savefig('figures/examples/AlexResults.png') #, bbox_inches='tight')
+    print('The plot has been saved, as figures/examples/AlexResults.png')
     pylab.show() #pauses until window manually closed. Have to save before calling this, because closing the window loses the figure
 
 
