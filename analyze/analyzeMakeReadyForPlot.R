@@ -33,11 +33,11 @@ factorsPlusSubject[ length(factorsForBreakdown)+1 ]<- "subject"
 initialMethod<-"brglm.fit"  # "glmCustomlink" #  
 getFitParms <- makeParamFit(iv,lapseMinMax,initialMethod,verbosity) #use resulting function for one-shot curvefitting
 getFitParmsPrintProgress <- function(df) {  #So I can see which fits yielded a warning, print out what was fitting first.
-  cat("Finding best fit (calling fitParms) for")
+  cat("Finding best fit (calling fitParms) for ")
   for (i in 1:length(factorsPlusSubject) ) #Using a loop print them all on one line
     cat( paste( factorsPlusSubject[i],"=",df[1,factorsPlusSubject[i]])," " )
   cat("\n")
-  print( df ) #debugON
+  print( table(df$Tilt) ) #debugON
   return( getFitParms(df) )
 }
 dat$subject <- factor(dat$subject)

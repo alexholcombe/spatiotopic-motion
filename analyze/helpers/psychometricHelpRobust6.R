@@ -45,6 +45,7 @@ fitBrglmKludge<- function( df, lapseMinMax, returnAsDataframe, initialMethod, ve
   if (!is.null(df$chanceRate))
   	chanceRate<- df$chanceRate[1] #assume it's same for all these trials
   else stop("df dataframe passed in must have chanceRate")
+  cat("fitBrglmKludge trying to fit "); print(df) #debugON
   #round min up to the nearest .01
   min01 = ceiling(lapseMinMax[1]*100) /100
   #round max down to the nearest .01
@@ -154,7 +155,7 @@ fitBrglmKludge<- function( df, lapseMinMax, returnAsDataframe, initialMethod, ve
 summarizNumTrials<-function(df) {
   if ( !("correct" %in% names(df)) )
    warning("your dataframe must have a column named 'correct'",immediate.=TRUE)
-
+  cat('Passed to summarizNumTrials=\n'); print(df) #debugON
   numCorrect<-sum(df$correct==1)
   numTrials<- sum(complete.cases(df$correct))
   chanceRate<- sum(df$chanceRate)/numTrials
@@ -171,9 +172,15 @@ makeParamFit <- function(iv, lapseMinMax, initialMethod, verbosity=0) {
     #data comes in one row per trial, but binomFit wants total correct, numTrials
     #so now I have to count number of correct, incorrect trials for each speed
     #assuming there's no other factors to worry about
-    sumry = ddply(df,.(iv),summarizNumTrials) #also calculates chanceRate
+    cat("Why is this going to yield one line when ddplyd?\n"); print(df) #debugON
+    dgg<<-df
+    sumry = ddply(df,iv,summarizNumTrials) #also calculates chanceRate
+    
+#    sumry = ddply(df,.(iv),summarizNumTrials) #also calculates chanceRate
+    print( paste("ddply df with factor ",iv, " summariz, yielding ")) #debugON
+    print(sumry) #debugON
   	#curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
-	returnAsDataframe=TRUE #this allows keeping the text of the warning messages. (Boot can't do this)
+    returnAsDataframe=TRUE #this allows keeping the text of the warning messages. (Boot can't do this)
   	fitParms = fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe,initialMethod,verbosity)
   	#print( paste('fitParms=',fitParms) )
   	return( fitParms )

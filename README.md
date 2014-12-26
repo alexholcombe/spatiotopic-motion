@@ -31,3 +31,4 @@ Sample data from Alex, 48 trials per tilt
 
 ###Offline data analysis
 Occurs in R, in analyze folder
+DOES THE CODE WEIGH BY NUMBER OF DATA POINTS?
