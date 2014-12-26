@@ -312,18 +312,9 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
     dh=data.frame(speed=c(.7,1.0,1.4,1.7,2.2),tf=c(3.0,4.0,5.0,6.0,7.0),
                   numCorrect=c(46,45,35,26,32),numTrials=c(48,48,48,48,49))
     dh$lapseRate=df$lapseRate
-    #binomfit_limsAlex(df$numCorrect,df$numTrials,df$speed,link=linkf,guessing=chanceRate,lapsing=l,control=cntrl,initial="brglm.fit")
-    if(iv=="speed") {
-      exampleModel<-suppressWarnings( 
-        binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh$speed, link=as.character(df$linkFx), 
+    exampleModel<-suppressWarnings(    
+        binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh[,iv], link=as.character(df$linkFx), 
                           guessing=df$chanceRate, lapsing=df$lapseRate, initial=as.character(df$method))  #, tryAlts=FALSE  ) 
-      ) } else if (iv=="tf") {
-      exampleModel<-suppressWarnings( 
-        binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh$tf, link=as.character(df$linkFx), 
-                          guessing=df$chanceRate, lapsing=df$lapseRate, initial=as.character(df$method))  #, tryAlts=FALSE  ) 
-      ) } else {
-        print(paste("iv must be either speed or tf, but what was passed was",tf))
-      }    
     exampleModel=exampleModel$fit
     #modify example fit, use its predictor only plus parameters I've found by fitting
     exampleModel[1]$coefficients[1] = df$mean
@@ -339,10 +330,8 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
     #returning the dependent variable with two names because some functions expect one
     #Reason is that want to be able to plot it with same ggplot stat_summary as use for raw
     #data that expects "correct"
-    if (iv=="tf") {
-      data.frame(tf=xs,pCorr=pfit,correct=pfit)
-    } else if (iv=="speed")        
-      data.frame(speed=xs,pCorr=pfit,correct=pfit)
+    df = data.frame(xs,pfit,pfit)
+    colnames(df) <- c(iv,"pCorr","pfit")
   }
   return (fnToReturn)
 }
