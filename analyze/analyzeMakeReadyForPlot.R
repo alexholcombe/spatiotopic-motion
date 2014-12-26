@@ -1,6 +1,6 @@
 setwd("/Users/alexh/Documents/vision/neuropsych_palinopsia_Michael_Beckett/Szinte_Cavanagh_Spatiotopic/psychopy_SzinteCavanagh/analyze/")
 
-iv='tilt'
+iv='Tilt'
 load("../data/MB.RData",verbose=TRUE) #E1 #returns dat
 source('helpers/psychometricHelpRobust6.R') #load my custom version of binomfit_lims
 
@@ -9,7 +9,7 @@ varyLapseRate = FALSE
 if (varyLapseRate) { lapseMinMax= c(0,0.05) }  else  #range of lapseRates to try for best fit
 	{ lapseMinMax = c(0.01,0.01) }
 chanceRate=.5
-factorsForBreakdown = c('tilt','startLeft')
+factorsForBreakdown = c('startLeft')
 
 xLims=c(-20,20)
 yLims=c(-.05,1.05)
@@ -37,11 +37,11 @@ getFitParmsPrintProgress <- function(df) {  #So I can see which fits yielded a w
   for (i in 1:length(factorsPlusSubject) ) #Using a loop print them all on one line
     cat( paste( factorsPlusSubject[i],"=",df[1,factorsPlusSubject[i]])," " )
   cat("\n")
-  #print( df[1,factorsPlusSubject] ) #one-line commmand, but breaks across lines
+  print( df ) #debugON
   return( getFitParms(df) )
 }
 dat$subject <- factor(dat$subject)
-
+dat$correct <- dat$respLeftRight #temporary bc fitting requires this to be dv
 #tempDat<- subset(dat,numObjects==2 & numTargets==1 & subject=="AH" ) #Does this well now, using penalized.deviance to compare across lapse rates
 fitParms <- ddply(dat, factorsPlusSubject, getFitParmsPrintProgress)
 #To-do. Change psychometrics myCurve to accommodate rescaling based on method

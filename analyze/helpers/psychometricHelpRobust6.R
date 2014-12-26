@@ -171,10 +171,7 @@ makeParamFit <- function(iv, lapseMinMax, initialMethod, verbosity=0) {
     #data comes in one row per trial, but binomFit wants total correct, numTrials
     #so now I have to count number of correct, incorrect trials for each speed
     #assuming there's no other factors to worry about
-    if (iv=="speed")
-      sumry = ddply(df,.(speed),summarizNumTrials) #also calculates chanceRate
-    else if (iv=="tf")
-      sumry = ddply(df,.(tf),summarizNumTrials) #also calculates chanceRate
+    sumry = ddply(df,.(iv),summarizNumTrials) #also calculates chanceRate
   	#curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
 	returnAsDataframe=TRUE #this allows keeping the text of the warning messages. (Boot can't do this)
   	fitParms = fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe,initialMethod,verbosity)
