@@ -1,7 +1,6 @@
 #This file analyses anonymized data provided by "loadAnonymiseSaveData.R" in exp-specific directory
 #Working directory is set hopefully by Rproj file to directory that it's in.
-#"/Users/alexh/Documents/attention_tempresltn/multiple\ object\ tracking/ExperimentsWithWing/speedLimitsAndTargetLoad/allAnalysisForPosting/speed-tf-VSS14"
-
+setwd("/Users/alexh/Documents/vision/neuropsych_palinopsia_Michael_Beckett/Szinte_Cavanagh_Spatiotopic/psychopy_SzinteCavanagh/analyze/")
 expName="123targets269objects" 
 load("../data/MB.RData",verbose=TRUE) #E1 #returns dat
 datE1 = dat
@@ -13,10 +12,10 @@ expName="SzinteCavanagh"
 # dat[,colsNotInThisOne] = -999 #dummy value
 # dat = rbind(dat,datE1)
 
-source('analyseExps/analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
-source('analyseExps/plotIndividDataWithPsychometricCurves.R')
+source('analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
+source('plotIndividDataWithPsychometricCurves.R')
   #should also do it normalizing by subjects' speed limits
-  source("analyseExps/extractThreshesAndPlot.R") #provides threshes, plots
+  source("analyze/extractThreshesAndPlot.R") #provides threshes, plots
 
   varName=paste("threshes_",iv,"_",expName,sep='') #combine threshes
   assign(varName,threshes)

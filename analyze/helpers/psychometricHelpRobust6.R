@@ -316,26 +316,20 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
     exampleModel<-suppressWarnings(    
         binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh[,iv], link=as.character(df$linkFx), 
                           guessing=df$chanceRate, lapsing=df$lapseRate, initial=as.character(df$method))  #, tryAlts=FALSE  ) 
-    )
-    print("myPlotCurve created model") #debugON
-    
+    )    
     exampleModel=exampleModel$fit
     
     #modify example fit, use its predictor only plus parameters I've found by fitting
     exampleModel[1]$coefficients[1] = df$mean
     exampleModel[1]$coefficients[2] = df$slope
-    print("exampleModel coefficients set") #debugON
   
     xs = (xmax-xmin) * (0:numxs)/numxs + xmin
     pfit<- suppressWarnings( predict( exampleModel, data.frame(x=xs), type = "response" ) ) #because of bad previous fit, generates warnings
-    print("Calculated prediction") #debugON
     if (df$method=="brglm.fit" | df$method=="glm.fit") {#Doesn't support custom link function, so had to scale from guessing->1-lapsing manually
 		  pfit<-unscale0to1(pfit,df$chanceRate,df$lapseRate)
 	  }
-    print("line 335") #debugON
     if ('numTargets' %in% colnames(dgg))
       if(df$numTargets=="2P"){ #Parameters were duplicate of numTargets==1, and p's are corresponding prediction averaged with chance
-        print("line 337") #debugON
         pfit<-0.5*(df$chanceRate+pfit)
       }	
     #returning the dependent variable with two names because some functions expect one
