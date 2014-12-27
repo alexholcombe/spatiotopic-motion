@@ -311,27 +311,42 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
     #I don't know why the below didn't work with example01 but it doesn't work
     dh=data.frame(speed=c(.7,1.0,1.4,1.7,2.2),tf=c(3.0,4.0,5.0,6.0,7.0),
                   numCorrect=c(46,45,35,26,32),numTrials=c(48,48,48,48,49))
+    dh[,iv] = c(.7,1.0,1.4,1.7,2.2) 
     dh$lapseRate=df$lapseRate
     exampleModel<-suppressWarnings(    
         binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh[,iv], link=as.character(df$linkFx), 
                           guessing=df$chanceRate, lapsing=df$lapseRate, initial=as.character(df$method))  #, tryAlts=FALSE  ) 
+    )
+    print("myPlotCurve created model") #debugON
+    
     exampleModel=exampleModel$fit
+    
     #modify example fit, use its predictor only plus parameters I've found by fitting
     exampleModel[1]$coefficients[1] = df$mean
     exampleModel[1]$coefficients[2] = df$slope
+    print("exampleModel coefficients set") #debugON
+  
     xs = (xmax-xmin) * (0:numxs)/numxs + xmin
     pfit<- suppressWarnings( predict( exampleModel, data.frame(x=xs), type = "response" ) ) #because of bad previous fit, generates warnings
+    print("Calculated prediction") #debugON
     if (df$method=="brglm.fit" | df$method=="glm.fit") {#Doesn't support custom link function, so had to scale from guessing->1-lapsing manually
 		  pfit<-unscale0to1(pfit,df$chanceRate,df$lapseRate)
 	  }
-    if(df$numTargets=="2P"){ #Parameters were duplicate of numTargets==1, and p's are corresponding prediction averaged with chance
-      pfit<-0.5*(df$chanceRate+pfit)
-    }	
+    print("line 335") #debugON
+    if ('numTargets' %in% colnames(dgg))
+      if(df$numTargets=="2P"){ #Parameters were duplicate of numTargets==1, and p's are corresponding prediction averaged with chance
+        print("line 337") #debugON
+        pfit<-0.5*(df$chanceRate+pfit)
+      }	
     #returning the dependent variable with two names because some functions expect one
     #Reason is that want to be able to plot it with same ggplot stat_summary as use for raw
     #data that expects "correct"
+    print("myPlotCurve trying to create dataframe"); print(head(df)) #debugON
     df = data.frame(xs,pfit,pfit)
+    print("myPlotCurve created dataframe"); print(head(df)) #debugON
+    
     colnames(df) <- c(iv,"pCorr","pfit")
+    print("returning curve with head()"); print(head(df)) #debugON
   }
   return (fnToReturn)
 }
