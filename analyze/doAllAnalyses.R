@@ -13,7 +13,7 @@ expName="SzinteCavanagh"
 # dat = rbind(dat,datE1)
 
 source('analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
-source('plotIndividDataWithPsychometricCurves.R')
+source('plotIndividDataWithPsychometricCurves.R') 
   #should also do it normalizing by subjects' speed limits
   source("analyze/extractThreshesAndPlot.R") #provides threshes, plots
 
