@@ -29,6 +29,6 @@ They had no jitter of any locations, and tested only 3, which was probably not a
 Sample data from Alex, 48 trials per tilt
 ![plot](https://github.com/alexholcombe/spatiotopic-motion/blob/master/figures/examples/AlexResults.png "Example results plot")
 
-###Offline data analysis
-Occurs in R, in analyze folder
+###Offline data analysis, in R
+In analyze folder
 DOES THE CODE WEIGH BY NUMBER OF DATA POINTS?

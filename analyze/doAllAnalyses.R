@@ -6,6 +6,8 @@ load("../data/MB.RData",verbose=TRUE) #E1 #returns dat
 datE1 = dat
 expName="SzinteCavanagh" 
 
+dataFileName="data/raw/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
+
 # colsNotInE1 = setdiff(colnames(dat),colnames(datE1))
 # datE1[,colsNotInE1] = -999 #dummy value
 # colsNotInThisOne = setdiff(colnames(datE1),colnames(dat))
