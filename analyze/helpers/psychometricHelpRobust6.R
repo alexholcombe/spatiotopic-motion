@@ -324,6 +324,7 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
     exampleModel[1]$coefficients[2] = df$slope
   
     xs = (xmax-xmin) * (0:numxs)/numxs + xmin
+    print("xs="); print(xs) #debugON
     pfit<- suppressWarnings( predict( exampleModel, data.frame(x=xs), type = "response" ) ) #because of bad previous fit, generates warnings
     if (df$method=="brglm.fit" | df$method=="glm.fit") {#Doesn't support custom link function, so had to scale from guessing->1-lapsing manually
 		  pfit<-unscale0to1(pfit,df$chanceRate,df$lapseRate)
@@ -341,6 +342,7 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
     
     colnames(df) <- c(iv,"pCorr","pfit")
     print("returning curve with head()"); print(head(df)) #debugON
+    return(df)
   }
   return (fnToReturn)
 }

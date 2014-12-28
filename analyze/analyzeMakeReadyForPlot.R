@@ -50,7 +50,7 @@ fitParms <- ddply(dat, factorsPlusSubject, getFitParmsPrintProgress)
 
 #prediction tracking two if only can track one. myPlotCurve then calculates it.
 #use the fitted parameters to get the actual curves
-myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2]+.5,numPointsForPsychometricCurve)
+myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numPointsForPsychometricCurve)
 #ddply(fitParms,factorsPlusSubject,function(df) { if (nrow(df)>1) {print(df); STOP} })  #debugOFF
 psychometrics<-ddply(fitParms,factorsPlusSubject,myPlotCurve)  
 
