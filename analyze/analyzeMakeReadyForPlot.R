@@ -9,7 +9,7 @@ varyLapseRate = FALSE
 if (varyLapseRate) { lapseMinMax= c(0,0.05) }  else  #range of lapseRates to try for best fit
 	{ lapseMinMax = c(0.01,0.01) }
 chanceRate=.5
-factorsForBreakdown = c('startLeft')
+factorsForBreakdown = c('exp','startLeft')
 
 xLims=c(-1,1)
 yLims=c(-.05,1.05)
