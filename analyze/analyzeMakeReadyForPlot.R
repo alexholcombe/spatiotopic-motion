@@ -11,7 +11,7 @@ if (varyLapseRate) { lapseMinMax= c(0,0.05) }  else  #range of lapseRates to try
 chanceRate=.5
 factorsForBreakdown = c('startLeft')
 
-xLims=c(-20,20)
+xLims=c(-1,1)
 yLims=c(-.05,1.05)
 numPointsForPsychometricCurve=150 #250
 #end global variables expected
