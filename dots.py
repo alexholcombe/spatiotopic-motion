@@ -55,7 +55,7 @@ else:
     dataDir='.'
 fName = participant+'_spatiotopicMotion_'+timeAndDateStr
 fileNameWithPath = os.path.join(dataDir, fName)
-dataFile = open(fileNameWithPath+'.txt', 'w')  # sys.stdout  #StringIO.StringIO()
+dataFile = open(fileNameWithPath+'MANUAL.txt', 'w')  # sys.stdout  #StringIO.StringIO()
 saveCodeCmd = 'cp \'' + sys.argv[0] + '\' '+ fileNameWithPath + '.py'
 os.system(saveCodeCmd)  #save a copy of the code as it was when that subject was run
 logFname = fileNameWithPath+'.log' 
@@ -295,14 +295,14 @@ while nDone < trials.nTotal and not expStop:
             df = DataFrame(thisTrial, index=[nDone],
                             columns = ['jitter','probeX','probeY','startLeft','tilt','upDown']) #columns included purely to specify their order
             df['respLeftRight'] = respLeftRight    
-            #trials.addData('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
-            trials.data.add('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
+            trials.data.add('respLeftRight', respLeftRight) #psychopy-native way of storing, saving data 
         else: #add this trial
             df['respLeftRight'] = respLeftRight    
             df= df.append( thisTrial, ignore_index=True ) #ignore because I got no index (rowname)
             df['respLeftRight'][nDone] = respLeftRight
             trials.data.add('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
+        trials.data.add('subject', participant) #psychopy-native way of storing, saving data 
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
@@ -333,12 +333,11 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
-    PP = fileNameWithPath + "_PSYCHOPY"
+    filenamePP = fileNameWithPath
     dfFromPP = trials.saveAsWideText(fileNamePP)
     print("dfFromPP type=\n",type(dfFromPP)) #should be  <class 'pandas.core.frame.DataFrame'>
-    print("df.dtypes=",dfFromPP.dtypes) #all "objects" for some reason
     print("dfFromPP.head =\n",dfFromPP.head)
-    dfFromPP.to_pickle(fileNameWithPath+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
+    #dfFromPP.to_pickle(fileNameWithPath+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
     fileNamePickle = fileNameWithPath #.psydat will automatically be appended
     trials.saveAsPickle(fileNamePickle)
     print("psychopy data summary:")
