@@ -333,7 +333,7 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
-    filenamePP = fileNameWithPath
+    fileNamePP = fileNameWithPath
     dfFromPP = trials.saveAsWideText(fileNamePP)
     print("dfFromPP type=\n",type(dfFromPP)) #should be  <class 'pandas.core.frame.DataFrame'>
     print("dfFromPP.head =\n",dfFromPP.head)
