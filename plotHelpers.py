@@ -64,7 +64,7 @@ def plotDataAndPsychometricCurve(df, dataFileName):
     grouped = df.groupby(['startLeft','tilt'])
     dirTilt = grouped.mean() #this is a dataframe, not a DataFrameGroupBy
     print "mean at each dir, tilt =\n", dirTilt
-    print "dirTilt.index = ", dirTilt.index #there is no column called 'tilt', instead it's the actual index, kinda like row names
+    #print "dirTilt.index = ", dirTilt.index #there is no column called 'tilt', instead it's the actual index, kinda like row names
     # MultiIndex [(False, -0.4), (False, 0.0), (False, 0.4), (True, -0.4), (True, 0.0), (True, 0.4)]
     #dirTilt.groups  no groups, maybe because dataframe?
     

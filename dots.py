@@ -179,7 +179,7 @@ for locus in locationOfProbe: #location of the probe for the trial
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
 
-blockReps = 2 #2
+blockReps = 1 #2
 trials = data.TrialHandler(stimList, blockReps)
 thisTrial = trials.next()
 
@@ -333,20 +333,18 @@ if expStop:
 else: 
     print("Experiment finished")
 if  nDone >0:
+    print("Data was saved on each trial to", fileNameWithPath+'MANUAL.txt')
     fileNamePP = fileNameWithPath
     dfFromPP = trials.saveAsWideText(fileNamePP)
-    print("dfFromPP type=\n",type(dfFromPP)) #should be  <class 'pandas.core.frame.DataFrame'>
-    print("dfFromPP.head =\n",dfFromPP.head)
+    print("Psychopy's dataframe has been saved as", fileNamePP)
     #dfFromPP.to_pickle(fileNameWithPath+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
     fileNamePickle = fileNameWithPath #.psydat will automatically be appended
     trials.saveAsPickle(fileNamePickle)
-    print("psychopy data summary:")
-    trials.printAsText(stimOut=['tilt'], #write summary data to screen 
-                      dataOut=['respLeftRight_mean','respLeftRight_std'])
-    #Use pandas to calculate proportion correct at each level
-    #The df.dtypes in my case are  "objects". I don't know what that is and you can't take the mean
-    #print('df.dtypes=\n',df.dtypes)
+    print("Most Psychopy-ic method: trials trialHandler has been saved as", fileNamePickle, "should include copy of code")
+                      
+    #df.dtypes in my case are  "objects". you can't take the mean
     df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
+    #print('df.dtypes=\n',df.dtypes)
    
     #Fit and plot data
     fig = plotDataAndPsychometricCurve(df, dataFileName=None)
