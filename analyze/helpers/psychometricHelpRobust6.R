@@ -172,11 +172,7 @@ makeParamFit <- function(iv, lapseMinMax, initialMethod, verbosity=0) {
     #data comes in one row per trial, but binomFit wants total correct, numTrials
     #so now I have to count number of correct, incorrect trials for each speed
     #assuming there's no other factors to worry about
-    cat("Why is this going to yield one line when ddplyd?\n"); print(df) #debugON
-    dgg<<-df
     sumry = ddply(df,iv,summarizNumTrials) #also calculates chanceRate
-    
-#    sumry = ddply(df,.(iv),summarizNumTrials) #also calculates chanceRate
     print( paste("ddply df with factor ",iv, " summariz, yielding ")) #debugON
     print(sumry) #debugON
   	#curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
@@ -329,7 +325,7 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
     if (df$method=="brglm.fit" | df$method=="glm.fit") {#Doesn't support custom link function, so had to scale from guessing->1-lapsing manually
 		  pfit<-unscale0to1(pfit,df$chanceRate,df$lapseRate)
 	  }
-    if ('numTargets' %in% colnames(dgg))
+    if ('numTargets' %in% colnames(df))
       if(df$numTargets=="2P"){ #Parameters were duplicate of numTargets==1, and p's are corresponding prediction averaged with chance
         pfit<-0.5*(df$chanceRate+pfit)
       }	

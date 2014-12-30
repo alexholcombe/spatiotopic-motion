@@ -1,7 +1,6 @@
 setwd("/Users/alexh/Documents/vision/neuropsych_palinopsia_Michael_Beckett/Szinte_Cavanagh_Spatiotopic/psychopy_SzinteCavanagh/analyze/")
 
-iv='Tilt'
-load("../data/MB.RData",verbose=TRUE) #E1 #returns dat
+iv='tilt'
 source('helpers/psychometricHelpRobust6.R') #load my custom version of binomfit_lims
 
 varyLapseRate = FALSE

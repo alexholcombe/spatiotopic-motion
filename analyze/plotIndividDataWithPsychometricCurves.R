@@ -5,7 +5,7 @@
 plotIndividDataAndCurves <- function(df,psychometricCurves) {
   #draw individual psychometric functions
   #to generalize below line, use aes_string
-  g=ggplot(data= df,aes(x='Tilt',y=correct,color=factor(numTargets),shape=factor(separatnDeg)))
+  g=ggplot(data= df,aes(x='tilt',y=correct,color=factor(numTargets),shape=factor(separatnDeg)))
   g=g+stat_summary(fun.y=mean,geom="point", position=position_jitter(w=0.04,h=0),alpha=.95)
   g=g+facet_wrap(separatnDeg ~ subject,ncol=8)+theme_bw()
   g
@@ -30,7 +30,7 @@ for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each 
   title<-paste('E',expThis,' individual Ss data',sep='')
   quartz(title,width=4,height=2.5) #,width=10,height=7)
   thisExpDat <- subset(dat,exp==expThis)
-  g=ggplot(data= thisExpDat,aes(x=Tilt,y=correct,color=factor(startLeft)))
+  g=ggplot(data= thisExpDat,aes(x=tilt,y=correct,color=factor(startLeft)))
   g=g+stat_summary(fun.y=mean,geom="point", position=position_jitter(w=0.04,h=0),alpha=.95)
   g=g+facet_grid(. ~ subject)+theme_bw()
   #g<-g+ coord_cartesian( xlim=c(xLims[1],xLims[2]), ylim=yLims ) #have to use coord_cartesian here instead of naked ylim()

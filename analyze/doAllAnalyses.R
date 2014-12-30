@@ -3,10 +3,11 @@
 setwd("/Users/alexh/Documents/vision/neuropsych_palinopsia_Michael_Beckett/Szinte_Cavanagh_Spatiotopic/psychopy_SzinteCavanagh/analyze/")
 expName="123targets269objects" 
 load("../data/MB.RData",verbose=TRUE) #E1 #returns dat
+datMB <- dat; datMB$tilt <- datMB$Tilt
+load("../data/E1.RData",verbose=TRUE) #E1 #returns dat
+
 datE1 = dat
 expName="SzinteCavanagh" 
-
-dataFileName="data/raw/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
 
 # colsNotInE1 = setdiff(colnames(dat),colnames(datE1))
 # datE1[,colsNotInE1] = -999 #dummy value
@@ -16,8 +17,8 @@ dataFileName="data/raw/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
 
 source('analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
 source('plotIndividDataWithPsychometricCurves.R') 
-  #should also do it normalizing by subjects' speed limits
-  source("analyze/extractThreshesAndPlot.R") #provides threshes, plots
+#should also do it normalizing by subjects' speed limits
+source("analyze/extractThreshesAndPlot.R") #provides threshes, plots
 
   varName=paste("threshes_",iv,"_",expName,sep='') #combine threshes
   assign(varName,threshes)
