@@ -33,4 +33,9 @@ Sample data from Alex, 48 trials per tilt
 In analyze folder
 ![plot](https://github.com/alexholcombe/spatiotopic-motion/blob/master/figures/examples/bySubjectE1Alex.png "Example results plot")
 
-DOES THE CODE WEIGH BY NUMBER OF DATA POINTS?
+###To-do
+
+* DOES THE CODE WEIGH BY NUMBER OF DATA POINTS?
+* NEED ERROR BARS ON INDIVIDUAL SUBJECT
+* ADD MILLISECONDS AS IV TO THRESHES PLOT
+* Plot slopes

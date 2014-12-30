@@ -347,6 +347,8 @@ makeMyThreshGetNumerically<- function(iv,threshCriterion) {#create function that
   fnToReturn<-function(df) { #after function has been fit, determine x-value needed for criterion performance
     #So if there's an error, return info about what it errored on. And also indicate there was an error
     #in the dataframe.
+    if ( !("correct" %in% names(df)) )
+      warning("your dataframe must have a column named 'correct'",immediate.=TRUE)
     ans<- tryCatch( {
       threshSlop<- threshold_slope(df$correct,df[,iv],criterion= threshCriterion)
       return( data.frame(thresh=threshSlop$x_th, slopeThisCrit=threshSlop$slope, error=FALSE) )

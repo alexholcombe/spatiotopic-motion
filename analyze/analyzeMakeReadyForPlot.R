@@ -52,7 +52,7 @@ fitParms <- ddply(dat, factorsPlusSubject, getFitParmsPrintProgress)
 myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numPointsForPsychometricCurve)
 #ddply(fitParms,factorsPlusSubject,function(df) { if (nrow(df)>1) {print(df); STOP} })  #debugOFF
 psychometrics<-ddply(fitParms,factorsPlusSubject,myPlotCurve)  
-
+psychometrics$correct <- psychometrics$pCorr #some functions expect one, some the other
 #Below are just helper functions. Consider migration into a helper function file
 
 #Usually ggplot with stat_summary will collapse the data into means, but for some plots and analyses can't do it that way.
