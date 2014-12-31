@@ -26,6 +26,16 @@ plotIndividDataAndCurves <- function(df,psychometricCurves) {
   g		
 }
 
+library(PropCIs)
+add4ciForGgplot <- function(x,conf.int) {
+  numCorrect <- sum(x)
+  numTrials <- length(x)
+  CI <- blakerci(numCorrect,numTrials,conf.int) #Agresti-Coull, aka adjusted Wald method
+  CI <- CI$conf.int
+  triplet <- data.frame( y=numCorrect/numTrials, ymin=CI[1], ymax=CI[2] )
+  return (triplet)
+}
+
 for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each experiment
   title<-paste('E',expThis,' individual Ss data',sep='')
   quartz(title,width=4,height=2.5) #,width=10,height=7)
@@ -44,7 +54,9 @@ for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each 
   #g=g+theme(panel.grid.minor=element_blank(),panel.grid.major=element_blank())# hide all gridlines.
   #g<- g+ theme(axis.title.y=element_text(size=12,angle=90),axis.text.y=element_text(size=10),axis.title.x=element_text(size=12),axis.text.x=element_text(size=10))
   #g<-g+ scale_x_continuous(breaks=c(0.5,1.0,1.5,2.0,2.5),labels=c("0.5","","1.5","","2.5"))
+  g<-g+stat_summary(fun.data="add4ciForGgplot",geom="errorbar",conf.int=.685,size=.07) 
   show(g)
+  
   figTitle = paste("../figures/bySubjectE",expThis,sep='')
   if (length(unique(thisExpDat$subject))==1) #only one subject
     figTitle = paste(figTitle,unique(thisExpDat$subject)[1],sep='')
