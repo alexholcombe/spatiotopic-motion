@@ -57,12 +57,26 @@ h<-h+ geom_point() + geom_line() #plot individual lines for each subject
 #h<-h+ggtitle("6,9 difft validates t.f. limit. Speed limits vary widely")
 show(h)
 ggsave( paste('../figures/',tit,'.png',sep='') )
-
-#Plot the slopes. I'm still getting insanely large slopes. Can I fit with something else?!
 ###########################################################
-
-cat('I give you threshes')
+#Plot the slopes.
+tit=paste("individualSs_slopes_",infoMsg,sep='')
+dv="slope"
+quartz(title=tit,width=4,height=3)
+h<-ggplot(data=subset(threshes,criterionNote=="nothing special"),
+          aes(x=startLeft,y=slopeThisCrit,color=factor(startLeft)))
+#There is also a slope parameter from brglm.fit but I dont know it's meaning
+h<-h+facet_grid(. ~ exp)  #facet_grid(criterion ~ exp)
+h<-h+themeAxisTitleSpaceNoGridLinesLegendBox #theme_bw() 
+#ylim(1.4,2.5) DO NOT use this command, it will drop some data
+#h<-h+ coord_cartesian( xlim=c(xLims[1],xLims[2]), ylim=yLims ) #have to use coord_cartesian here instead of naked ylim()
+h<-h+ geom_point() + geom_line() #plot individual lines for each subject
+#h<-h+ggtitle("6,9 difft validates t.f. limit. Speed limits vary widely")
+show(h)
+ggsave( paste('../figures/',tit,'.png',sep='') )
 ###################################
+cat('I give you threshes')
+
+
 #plot thresholds (at only one criterion level) for all 3 experiments at same time
 # quartz()
 # #tt<-subset(threshes,subject=="AH");  tt<-subset(tt,numTargets=="1")
