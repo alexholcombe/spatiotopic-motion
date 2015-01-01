@@ -56,10 +56,11 @@ for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each 
   g=g+xlab(iv)+ylab('Proportion respLeftRight')
   #g<- g+ theme(axis.title.y=element_text(size=12,angle=90),axis.text.y=element_text(size=10),axis.title.x=element_text(size=12),axis.text.x=element_text(size=10))
   #g<-g+ scale_x_continuous(breaks=c(0.5,1.0,1.5,2.0,2.5),labels=c("0.5","","1.5","","2.5"))
-  worstCasePsychometricRegion$correct=.5 #in this df tp send to geom_ribbon, must have y-variable that was specified in initial call, otherwise ggplot tries to do something funky that results in an error
-  g+geom_ribbon(data=worstCasePsychometricRegion,aes(x=tilt,ymin=lower,ymax=upper,color=NULL,fill=factor(startLeft)),alpha=0.2)
-  
   g<-g+stat_summary(fun.data="add4ciForGgplot",geom="errorbar",conf.int=.685,size=.2, width=.12) 
+  if (bootstrapTheFit) {
+    worstCasePsychometricRegion$correct=.5 #in this df tp send to geom_ribbon, must have y-variable that was specified in initial call, otherwise ggplot tries to do something funky that results in an error
+    g=g+geom_ribbon(data=worstCasePsychometricRegion,aes(x=tilt,ymin=lower,ymax=upper,color=NULL,fill=factor(startLeft)),alpha=0.2)
+  }
   show(g)
   
   figTitle = paste("../figures/bySubjectE",expThis,sep='')

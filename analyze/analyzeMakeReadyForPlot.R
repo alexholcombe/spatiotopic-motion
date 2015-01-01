@@ -54,25 +54,23 @@ myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numPointsForPsychometricCur
 psychometrics<-ddply(fitParms,factorsPlusSubject,myPlotCurve)  
 psychometrics$correct <- psychometrics$pCorr #some functions expect one, some the other
 
-########################do bootstrapping####################
-getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,verbosity=0)   
+bootstrapTheFit = TRUE
+if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
+{
+  getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,verbosity=0)   
+  bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=200,
+                                     confInterval=.6827)
+  #calculate confidence interval for mean parameter and slope parameter
+  paramCIs= ddply(dat,factorsPlusSubject,bootForDdply)
+  paramCIs$linkFx <- fitParms[1,"linkFx"] #needed by myPlotCurve. Assume boot is same
+  paramCIs$method <- fitParms[1,"method"] #needed by myPlotCurve. Assume boot is same
+  paramCIs$chanceRate <- fitParms[1,"chanceRate"] #needed by myPlotCurve. Assume boot is same
   
-bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=200,
-                                   confInterval=.6827)
+  minMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
   
-#calculate confidence interval for mean parameter and slope parameter
-paramCIs= ddply(dat,factorsPlusSubject,bootForDdply)
-paramCIs$linkFx <- fitParms[1,"linkFx"] #needed by myPlotCurve. Assume boot is same
-paramCIs$method <- fitParms[1,"method"] #needed by myPlotCurve. Assume boot is same
-paramCIs$chanceRate <- fitParms[1,"chanceRate"] #needed by myPlotCurve. Assume boot is same
-
-minMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
-
-#calculate confidence region
-worstCasePsychometricRegion= ddply(paramCIs, factorsPlusSubject, minMaxWorstCaseCurves)
-
-#h=h+geom_ribbon(data=minmax,aes(x=Hz,ymin=lower, ymax=upper),alpha=0.3)
-#########end bootstrapping######################
+  #calculate confidence region, to use with ggplot in other file
+  worstCasePsychometricRegion= ddply(paramCIs, factorsPlusSubject, minMaxWorstCaseCurves)
+} #########end bootstrapping######################
 
 #Below are just helper functions. Consider migration into a helper function file
 
