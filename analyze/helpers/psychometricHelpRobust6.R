@@ -45,7 +45,7 @@ fitBrglmKludge<- function( df, lapseMinMax, returnAsDataframe, initialMethod, ve
   if (!is.null(df$chanceRate))
   	chanceRate<- df$chanceRate[1] #assume it's same for all these trials
   else stop("df dataframe passed in must have chanceRate")
-  cat("fitBrglmKludge trying to fit "); print(df) #debugON
+  if (verbosity) { cat("fitBrglmKludge trying to fit\n"); print(df) }
   #round min up to the nearest .01
   min01 = ceiling(lapseMinMax[1]*100) /100
   #round max down to the nearest .01
@@ -155,7 +155,7 @@ fitBrglmKludge<- function( df, lapseMinMax, returnAsDataframe, initialMethod, ve
 summarizNumTrials<-function(df) {
   if ( !("correct" %in% names(df)) )
    warning("your dataframe must have a column named 'correct'",immediate.=TRUE)
-  cat('Passed to summarizNumTrials=\n'); print(df) #debugON
+  #cat('Passed to summarizNumTrials=\n'); print(df) #debugOFF
   numCorrect<-sum(df$correct==1)
   numTrials<- sum(complete.cases(df$correct))
   chanceRate<- sum(df$chanceRate)/numTrials
@@ -185,27 +185,25 @@ makeParamFit <- function(iv, lapseMinMax, initialMethod, verbosity=0) {
 }
 
 #construct a function to use for function fitting and bootstrapping. Will be sent one row per trial
-makeParamFitForBoot <- function(chanceRate=0.5,lapseMinMax,verbosity=0) { #default chancePerformanceRate=.5
+makeParamFitForBoot <- function(iv,lapseMinMax,initialMethod,verbosity=0) { #default chancePerformanceRate=.5
     #so boot function will provide a random list of idxs. The problem is partialling these out among speeds. Old way of doing it is putting the whole experiment in a single hat, so you can end up with
     #fake datasets that don't even test at certain speeds
     fn2 <- function(df,idxs) {
-    	thisData <- df[idxs,]  #perhaps I should not be randomly subsampling from entire dataset
-    	#instead, randomly subsample equating number of trials per speed
-    	#print('thisData, str='); print(str(thisData))
-#    	print(c("idxs=",idxs))
+    	thisData <- df[idxs,]  
     	#data comes in one row per trial, but binomFit wants total correct, numTrials
     	#so now I have to count number of correct, incorrect trials for each speed
     	#assuming there's no other factors to worry about
-    	if ( !("speed" %in% names(df)) )
+    	if ( !(iv %in% names(df)) )
     	  warning("your dataframe must contain speed as an independent variable",immediate.=TRUE)
-	    sumry = ddply(thisData,.(speed),summarizNumTrials)
+	    sumry = ddply(thisData,iv,summarizNumTrials)
 	    if (verbosity>1) {
 	    	print('sumry='); print(sumry)
 	    }	
-	    if ( length(sumry$speed)==1 )
-	    	print('boot has unluckily drawn a bootstrapped experiment with only one speed. Not sure what to do') #actually, bootstrapping should have separate hats for each speed. this is called stratified bstrapping in R terms
+	    if ( nrow(sumry[iv])==1 )
+	    	print('boot has unluckily drawn a bootstrapped experiment with only one iv value. Not sure what to do') #actually, bootstrapping should have separate hats for each speed. this is called stratified bstrapping in R terms
 	    returnAsDataframe=FALSE #Boot can't handle dataframes. Would allow keeping the text of the warning messages.
-        fitParms<- fitBrglmKludge(sumry,chanceRate,lapseMinMax, returnAsDataframe, verbosity)
+      #sumry should have chanceRate as a field but I dont know if it does
+      fitParms<- fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe, initialMethod, verbosity)
 	    if (verbosity>0) 
   			print( paste('fitParms=',fitParms) )
         return( fitParms )
@@ -259,43 +257,6 @@ makeMyPsychoCorr2<- function(iv) { #Very similar to makeMyPlotCurve below, only 
   }
   return (fnToReturn)
 }
-
-makeMyPsychoCorr<- function(iv) { #Very similar to makeMyPlotCurve below, only for just one x
-  fnToReturn<-function(df,x) {
-    #expecting to be passed df with fields:
-    # mean, slope, lapseRate, chanceRate, method, linkFx
-    df = data.frame(df) #in case it wasn't a dataframe yet
-    #set up example model with fake data
-    #I don't know why the below didn't work with example01 but it doesn't work
-    dh=data.frame(speed=c(.7,1.0,1.4,1.7,2.2),tf=c(3.0,4.0,5.0,6.0,7.0),
-                  numCorrect=c(46,45,35,26,32),numTrials=c(48,48,48,48,49))
-    dh$lapseRate=df$lapseRate
-    if(iv=="speed") {
-      exampleModel<-suppressWarnings( 
-        binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh$speed, link=as.character(df$linkFx), 
-                          guessing=df$chanceRate, lapsing=df$lapseRate, initial=as.character(df$method))  #, tryAlts=FALSE  ) 
-      ) } else if (iv=="tf") {
-        exampleModel<-suppressWarnings( 
-          binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh$tf, link=as.character(df$linkFx), 
-                            guessing=df$chanceRate, lapsing=df$lapseRate, initial=as.character(df$method))  #, tryAlts=FALSE  ) 
-        ) } else {
-          print(paste("iv must be either speed or tf, but what was passed was",tf))
-        }    
-    exampleModel=exampleModel$fit
-    #modify example fit, use its predictor only plus parameters I've found by fitting
-    exampleModel[1]$coefficients[1] = df$mean
-    exampleModel[1]$coefficients[2] = df$slope
-    pfit<- suppressWarnings( predict( exampleModel, data.frame(x=x), type = "response" ) ) #because of bad previous fit, generates warnings
-    if (df$method=="brglm.fit" | df$method=="glm.fit") {#Doesn't support custom link function, so had to scale from guessing->1-lapsing manually
-      pfit<-unscale0to1(pfit,df$chanceRate,df$lapseRate)
-    }
-    if(df$numTargets=="2P"){ #Parameters were duplicate of numTargets==1, and p's are corresponding prediction averaged with chance
-      pfit<-0.5*(df$chanceRate+pfit)
-    }	
-    return (pfit)
-  }
-return (fnToReturn)
-}
   
 makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plotting function over specified domain
   fnToReturn<-function(df) {
@@ -309,10 +270,11 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs) {#create psychometric curve plot
                   numCorrect=c(46,45,35,26,32),numTrials=c(48,48,48,48,49))
     dh[,iv] = c(.7,1.0,1.4,1.7,2.2) 
     dh$lapseRate=df$lapseRate
+    print(head(df)) #debugON
     exampleModel<-suppressWarnings(    
         binomfit_limsAlex(dh$numCorrect, dh$numTrials, dh[,iv], link=as.character(df$linkFx), 
                           guessing=df$chanceRate, lapsing=df$lapseRate, initial=as.character(df$method))  #, tryAlts=FALSE  ) 
-    )    
+        )    
     exampleModel=exampleModel$fit
     
     #modify example fit, use its predictor only plus parameters I've found by fitting
@@ -408,46 +370,46 @@ options(warn=0) #needs to be 0, otherwise no way to catch warnings while also le
 ########################do bootstrapping####################
 #get confidence interval on parameters, so can draw confidence region
 #bootstrap for each subset of experiment sent by ddply
-makeMyBootForDdply<- function(getFitParmsForBoot,iteratns,confInterval,verbosity=0) {  #create a psychometric curve plotting function over specified domain
+makeMyBootForDdply<- function(getFitParmsForBoot,iv,iteratns,confInterval,verbosity=0) {  #create a psychometric curve plotting function over specified domain
 	#assumes getFitParmsForBoot has already been constructed
-#For the parametric bootstrap it is necessary for the user to specify how the resampling is to be #conducted. The best way of accomplishing this is to specify the function ran.gen which will return a #simulated data set from the observed data set and a set of parameter estimates specified in mle	
+  #For the parametric bootstrap it is necessary for the user to specify how the resampling is to be #conducted. The best way of accomplishing this is to specify the function ran.gen which will return a #simulated data set from the observed data set and a set of parameter estimates specified in mle	
 	fnToReturn<-function(df) {
-  		#send to boot the dataframe piece with one row per trial
-  		print(paste('boostrapping with',names(df)[1],'=',df[1,1],names(df)[2],'=',df[1,2]))
-  		#lastDfForBoot <<-df
-  		b<-boot(df,getFitParmsForBoot,R=iteratns,strata=factor(df$speed)) 
-  		print('finished boot call, and boot returned:'); print(b)
-		
-  		ciMethod= 'perc'  #'bca' don't use until investigate why sometimes get error. #with 'bca' boot method using Christina's data, get this error: Error in bca.ci(boot.out, conf, index[1L], L = L, t = t.o, t0 = t0.o,  :   estimated adjustment 'a' is NA
-  		
-  		ciMeanWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=1,type= ciMethod)    ) 
-  	  	
-  		if (length(attributes(ciMeanWithWarnings)$warningMsgs) >0) {
-  			print("ciMean boot.ci warned with:"); print(attributes(ciMeanWithWarnings)$warningMsgs); 
-  			if (verbosity>0) {
-  				cat("but gave value of:"); print(ciMeanWithWarnings);
-  			}
-  	    }
-  	    ciMean <- ciMeanWithWarnings
-  	    if (is.null(ciMeanWithWarnings)) #calculating statistic on resamplings always yielded the same value
-  			ciMean= data.frame(percent=c(-1,-1,-1,b$t[1,1],b$t[2,1]), bca=c(-1,-1,-1,b$t[1,1],b$t[2,1])) 
- #set both ends of CI to that value. Should take notice of warning
-
-  		ciSlopeWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=2,type=ciMethod)    ) 
-  		if (length(attributes(ciSlopeWithWarnings)$warningMsgs) >0) {
-  			print("ciSlope boot.ci warned with:"); print(attributes(ciSlopeWithWarnings)$warningMsgs); 
-  			if (verbosity>0) {
-  				cat("but gave value of:"); print(ciSlopeWithWarnings);
-  			}
-  	    }
-  		
-  		ciSlope <- ciSlopeWithWarnings
-  	    if (is.null(ciSlopeWithWarnings)) #calculating statistic on resamplings always yielded the same value
-  			#lapseRates not successfully bootstrapped, so set up dummy bootstrap value return
-  			ciSlope= data.frame(percent=c(-1,-1,-1,b$t[1,2],b$t[2,2]), bca=c(-1,-1,-1,b$t[1,2],b$t[2,2])) 
-
+	  #send to boot the dataframe piece with one row per trial
+	  if (verbosity) { print('boostrapping with'); print(df[1,]) }
+	  #lastDfForBoot <<-df
+	  b<-boot(df,getFitParmsForBoot,R=iteratns,
+            strata=df[,iv]) #strata has to be vector, not dataframe so have to include comma to get iv out
+	  #print('finished boot call, and boot returned:'); print(b)
+	  
+	  ciMethod= 'perc'  #'bca' don't use until investigate why sometimes get error. #with 'bca' boot method using Christina's data, get this error: Error in bca.ci(boot.out, conf, index[1L], L = L, t = t.o, t0 = t0.o,  :   estimated adjustment 'a' is NA
+	  ciMeanWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=1,type= ciMethod)    ) 
+	  
+	  if (length(attributes(ciMeanWithWarnings)$warningMsgs) >0) {
+	    print("ciMean boot.ci warned with:"); print(attributes(ciMeanWithWarnings)$warningMsgs); 
+	    if (verbosity>0) {
+	      cat("but gave value of:"); print(ciMeanWithWarnings);
+	    }
+	  }
+	  ciMean <- ciMeanWithWarnings
+	  if (is.null(ciMeanWithWarnings)) #calculating statistic on resamplings always yielded the same value
+	    ciMean= data.frame(percent=c(-1,-1,-1,b$t[1,1],b$t[2,1]), bca=c(-1,-1,-1,b$t[1,1],b$t[2,1])) 
+	  #set both ends of CI to that value. Should take notice of warning
+	  
+	  ciSlopeWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=2,type=ciMethod)    ) 
+	  if (length(attributes(ciSlopeWithWarnings)$warningMsgs) >0) {
+	    print("ciSlope boot.ci warned with:"); print(attributes(ciSlopeWithWarnings)$warningMsgs); 
+	    if (verbosity>0) {
+	      cat("but gave value of:"); print(ciSlopeWithWarnings);
+	    }
+	  }
+	  
+	  ciSlope <- ciSlopeWithWarnings
+	  if (is.null(ciSlopeWithWarnings)) #calculating statistic on resamplings always yielded the same value
+	    #lapseRates not successfully bootstrapped, so set up dummy bootstrap value return
+	    ciSlope= data.frame(percent=c(-1,-1,-1,b$t[1,2],b$t[2,2]), bca=c(-1,-1,-1,b$t[1,2],b$t[2,2])) 
+	  
 		slopesEachResampling=b$t[,2]
-  		failures = which( is.na(slopesEachResampling) )
+  	failures = which( is.na(slopesEachResampling) )
 		numFailures = length( failures )
 		#how many times was NA returned. CI calculation will gag if any
 		if (numFailures>0) {
@@ -455,7 +417,6 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iteratns,confInterval,verbosity
 		  #b$t[failures,2]=-1
 		}
 		if (lapseMinMax[1] != lapseMinMax[2]) {
-
   			ciLapseRateWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=3,type= ciMethod)     ) 
   			if (length(attributes(ciLapseRateWithWarnings)$warningMsgs) >0) {
   				print("ciSlope boot.ci warned with:"); print(attributes(ciLapseRateWithWarnings)$warningMsgs); 
@@ -468,7 +429,7 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iteratns,confInterval,verbosity
   				#lapseRates not successfully bootstrapped, so set up dummy bootstrap value return
   				ciLapseRate = data.frame(percent=c(-1,-1,-1,b$t[1,3],b$t[2,3]), bca=c(-1,-1,-1,b$t[1,3],b$t[2,3])) 
   			
-  		} else { 
+  	} else { 
   			#lapseRates not bootstrapped, so set up dummy bootstrap value return
   			ciLapseRate= data.frame(percent=c(-1,-1,-1,lapseMinMax[1],lapseMinMax[2]), bca=c(-1,-1,-1,lapseMinMax[1],lapseMinMax[2])) 
   		}  
@@ -485,22 +446,28 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iteratns,confInterval,verbosity
   		} else print('unexpected ciMethod')
   		print(c('ciMean$percent[4:5]=',ciMean,' ciSlope$percent[4:5]=',ciSlope))
   		
-  		data.frame(meanLo=ciMean[1],meanHi=ciMean[2],slopeLo=ciSlope[1],slopeHi=ciSlope[2],lapserateLo=ciLapseRate[1],lapserateHi=ciLapseRate[2])
+  		data.frame(meanLo=ciMean[1],meanHi=ciMean[2],slopeLo=ciSlope[1],slopeHi=ciSlope[2],
+                 lapserateLo=ciLapseRate[1],lapserateHi=ciLapseRate[2])
   	}
   	return (fnToReturn)
 }
 
-makeMyMinMaxWorstCaseCurves<- function(myPlotCurve) {
+makeMyMinMaxWorstCaseCurves<- function(myPlotCurve,iv) {
 	fn2<-function(df) { 
 		#calculate curves for factorial combination of the confidence interval parameters. Then, plot the most extreme of them all by assigning them to response.inf and response.sup
-  		allCombos= expand.grid( mean=c(df$meanLo,df$meanHi), slope=c(df$slopeLo,df$slopeHi), lapseRate=c(df$lapserateLo,df$lapserateHi) )
-  		#have to add lapse rates to this dataframe
-  		
+  		allCombos= expand.grid( mean=c(df$meanLo,df$meanHi), slope=c(df$slopeLo,df$slopeHi), 
+                              lapseRate=c(df$lapserateLo,df$lapserateHi) )
+  		allCombos$linkFx=df[1,"linkFx"] #needed by myPlotCurve
+  		allCombos$method=df[1,"method"] #needed by myPlotCurve
+      allCombos$chanceRate=df[1,"chanceRate"]
   		#print(c('allCombos=',allCombos))
-  		worstCasePsychometrics= adply(allCombos,1,myPlotCurve)  
-  		minmaxCIpsychometrics= ddply(worstCasePsychometrics,.(speed), 
-		     myMinMax<- function(df) { data.frame(lower=min(df$correct),
-		  									       upper=max(df$correct)) } )
+  		worstCasePsychometrics= adply(allCombos,1,myPlotCurve)
+  		minmaxCIpsychometrics= ddply(worstCasePsychometrics,iv, 
+		     myMinMax<- function(df) { data.frame(lower=min(df$pCorr),
+		  									                      upper=max(df$pCorr),
+                                              linkFx=df[1,"linkFx"],
+                                              method=df[1,"method"],
+                                              chanceRate=df[1,"chanceRate"]) } )
 		return(minmaxCIpsychometrics)
 	}
 	return (fn2)

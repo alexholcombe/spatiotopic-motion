@@ -234,7 +234,7 @@ binomfit_limsAlex <- function(r,m,x,p=1, link="logit", guessing=0, lapsing=0, K=
     checkdata[[2]] <- r
 
     checkdata[[3]] <- m
-	cat(paste("binomfit_limsAlex x=",x,"r=",r,"m=",m)) #debugON
+	  #cat(paste("binomfit_limsAlex x=",x,"r=",r,"m=",m)) #debugOFF
     checkinput( "psychometricdata", checkdata );
 
     rm( checkdata )
