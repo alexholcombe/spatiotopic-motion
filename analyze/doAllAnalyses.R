@@ -18,11 +18,11 @@ expName="SzinteCavanagh"
 source('analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
 source('plotIndividDataWithPsychometricCurves.R') 
 #should also do it normalizing by subjects' speed limits
-source("analyze/extractThreshesAndPlot.R") #provides threshes, plots
+source("extractThreshesAndPlot.R") #provides threshes, plots
 
 #save threshes to file
 varName=paste("threshes_",iv,"_",expName,sep='') #combine threshes
 assign(varName,threshes)
 save(list=varName,file=paste("../data/",varName,".Rdata",sep='')) 
-print( paste("Saved threshes to file", varName, ".Rdata") )
+print( paste("Saved threshes to file", varName, ".Rdata",sep='') )
 

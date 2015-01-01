@@ -58,14 +58,14 @@ bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
 {
   getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,verbosity=0)   
-  bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=200,
+  bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=300,
                                      confInterval=.6827)
   #calculate confidence interval for mean parameter and slope parameter
   paramCIs= ddply(dat,factorsPlusSubject,bootForDdply)
   paramCIs$linkFx <- fitParms[1,"linkFx"] #needed by myPlotCurve. Assume boot is same
   paramCIs$method <- fitParms[1,"method"] #needed by myPlotCurve. Assume boot is same
   paramCIs$chanceRate <- fitParms[1,"chanceRate"] #needed by myPlotCurve. Assume boot is same
-  
+ 
   minMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
   
   #calculate confidence region, to use with ggplot in other file

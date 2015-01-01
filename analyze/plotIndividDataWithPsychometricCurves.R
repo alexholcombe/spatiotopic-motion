@@ -42,8 +42,12 @@ for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each 
   title<-paste('E',expThis,' individual Ss data',sep='')
   quartz(title,width=4,height=2.5) #,width=10,height=7)
   thisExpDat <- subset(dat,exp==expThis)
-  g=ggplot(data= thisExpDat,aes(x=tilt,y=correct,color=factor(startLeft)))
+  #thisExpDat$saccadeDir <- c("leftward","rightward")[ thisExpDat$startLeft + 1 ]
+  g=ggplot(data= thisExpDat,aes(x=tilt,y=correct,color=factor(startLeft)))  
   g=g+stat_summary(fun.y=mean,geom="point",alpha=.95)
+  colrs = ggplot_build(g)$data[[1]]$colour #returns colors auto-chosen by ggplot http://stackoverflow.com/questions/15130497/changing-ggplot-factor-colors
+  #have to indicate colors when change legend values and name below 
+  g=g+scale_color_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="")
   g=g+facet_grid(. ~ subject)+theme_bw()
   g=g+theme(panel.grid.minor=element_blank(),panel.grid.major=element_blank())# hide all gridlines.
   #g<-g+ coord_cartesian( xlim=c(xLims[1],xLims[2]), ylim=yLims ) #have to use coord_cartesian here instead of naked ylim()
@@ -60,6 +64,8 @@ for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each 
   if (bootstrapTheFit) {
     worstCasePsychometricRegion$correct=.5 #in this df tp send to geom_ribbon, must have y-variable that was specified in initial call, otherwise ggplot tries to do something funky that results in an error
     g=g+geom_ribbon(data=worstCasePsychometricRegion,aes(x=tilt,ymin=lower,ymax=upper,color=NULL,fill=factor(startLeft)),alpha=0.2)
+    g=g+scale_fill_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="",
+                          guide=FALSE)  #actually guide=FALSE doesnt prevent lines from being drawn  
   }
   show(g)
   

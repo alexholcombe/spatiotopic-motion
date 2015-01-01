@@ -44,7 +44,7 @@ themeAxisTitleSpaceNoGridLinesLegendBox = theme_classic() + #Remove gridlines, s
         panel.background = element_rect(fill = "transparent",colour = NA),
         plot.background = element_rect(fill = "transparent",colour = NA)   )
 ##########Plot threshes, exp*subject*startLeft ################
-tit=paste("individualSs_threshes_",infoMsg)
+tit=paste("individualSs_threshes_",infoMsg,sep='')
 dv="thresh"
 quartz(title=tit,width=4,height=3) #create graph of thresholds
 h<-ggplot(data=subset(threshes,criterionNote=="nothing special"),
@@ -56,7 +56,7 @@ h<-h+themeAxisTitleSpaceNoGridLinesLegendBox #theme_bw()
 h<-h+ geom_point() + geom_line() #plot individual lines for each subject
 #h<-h+ggtitle("6,9 difft validates t.f. limit. Speed limits vary widely")
 show(h)
-ggsave( paste('figs/E1_startLeft/',tit,'.png',sep='') )
+ggsave( paste('../figures/',tit,'.png',sep='') )
 
 #Plot the slopes. I'm still getting insanely large slopes. Can I fit with something else?!
 ###########################################################
