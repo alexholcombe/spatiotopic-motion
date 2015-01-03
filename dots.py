@@ -20,6 +20,8 @@ trialClock = core.Clock()
 ballStdDev = 0.8
 autoLogging = False
 participant = 'Hubert'
+if autopilot:
+    participant = 'auto'
 fullscr=False
 refreshRate = 60
 infoFirst = {'Participant':participant, 'Check refresh etc':False, 'Fullscreen (timing errors if not)': fullscr, 'Screen refresh rate': refreshRate }
@@ -178,14 +180,15 @@ for locus in locationOfProbe: #location of the probe for the trial
             for jitter in [-0.875,0,0.875]:#shifting each condition slightly from the location to ensure participants dont recognise tilted trials by the location of the initial probe
                 probeLocationX = locus[0]+jitter
                 stimList.append({'probeX': probeLocationX, 'probeY':probeLocationY, 'startLeft':startLeft, 'upDown': upDown, 'tilt': tilt, 'jitter': jitter})
-
 blockReps = 1 #2
-trials = data.TrialHandler(stimList, blockReps)
-thisTrial = trials.next()
 
 #durations in frames
 durWithoutProbe = 0.1
 durProbe = 0.4
+
+trials = data.TrialHandler(stimList, blockReps, 
+                                         extraInfo= {'subject':participant,'durWithoutProbe':durWithoutProbe} )  #will be included in each row of dataframe and wideText
+thisTrial = trials.next()
 
 initialDurS = durWithoutProbe
 probeFirstDisappearanceS = initialDurS + durProbe
@@ -302,7 +305,6 @@ while nDone < trials.nTotal and not expStop:
             df['respLeftRight'][nDone] = respLeftRight
             trials.data.add('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
-        trials.data.add('subject', participant) #psychopy-native way of storing, saving data 
         #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
         #Should be able to print from the dataFrame in csv format
         oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +

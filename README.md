@@ -34,7 +34,5 @@ In analyze folder
 ![plot](https://github.com/alexholcombe/spatiotopic-motion/blob/master/figures/examples/bySubjectE1Alex.png "Example results plot")
 
 ###To-do
-
 * DOES THE CODE WEIGH BY NUMBER OF DATA POINTS?
 * ADD MILLISECONDS AS IV TO THRESHES PLOT
-* Plot slopes
