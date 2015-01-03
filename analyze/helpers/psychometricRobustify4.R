@@ -182,26 +182,17 @@ binomfit_limsAlex <- function(r,m,x,p=1, link="logit", guessing=0, lapsing=0, K=
 								control=list(),initial="brglm.fit",tryOthers=TRUE) {
 
 #
-
 # The function fits a binomial generalised linear model with fixed guessing and lapsing rates.
-
 # It is based closely on a function of similar name in the modelfree package
 # INPUT
-
-#
 # r    - number of successes at points x
 # m    - number of trials at points x 
 # x    - stimulus levels
 #
 
 # OPTIONAL INPUT
-
-#
-
 # p    - degree of the polynomial; default is p = 1 
-
 # link - name of the link function; default is "logit"
-
 # guessing - guessing rate; default is 0
 # lapsing  - lapsing rate; default is 0
 # K    - power parameter for Weibull and reverse Weibull link; default is 2
