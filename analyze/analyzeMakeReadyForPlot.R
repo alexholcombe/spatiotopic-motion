@@ -118,7 +118,11 @@ calcPctCorrThisIvVal <- function(df,iv,val) {
   return (answer)
 }
 
-cat(paste('I give you fitParms, psychometrics, datMeans, worstCasePsychometricRegion and function calcPctCorrThisIvVal.'))
+cat(paste('I give you fitParms, psychometrics, datMeans, and function calcPctCorrThisIvVal.'))
+if (bootstrapTheFit) {
+  cat(paste('I also give you bootstrapped worstCasePsychometricRegion '))
+  stopifnot(exists("worstCasePsychometricRegion"))
+}
 stopifnot(exists("fitParms"))
 stopifnot(exists("psychometrics"))
 stopifnot(exists("datMeans"))
