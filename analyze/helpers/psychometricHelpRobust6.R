@@ -307,12 +307,10 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs,lapseAffectBothEnds=FALSE) {#crea
     #returning the dependent variable with two names because some functions expect one
     #Reason is that want to be able to plot it with same ggplot stat_summary as use for raw
     #data that expects "correct"
-    print("myPlotCurve trying to create dataframe"); print(head(df)) #debugON
     df = data.frame(xs,pfit,pfit)
-    print("myPlotCurve created dataframe"); print(head(df)) #debugON
     
     colnames(df) <- c(iv,"pCorr","pfit")
-    print("returning curve with head()"); print(head(df)) #debugON
+    #print("returning curve with head()"); print(head(df)) #debugOFF
     return(df)
   }
   return (fnToReturn)
@@ -390,12 +388,14 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iv,iteratns,confInterval,verbos
 	  #send to boot the dataframe piece with one row per trial
 	  if (verbosity) { print('boostrapping with'); print(df[1,]) }
 	  #lastDfForBoot <<-df
+    #do all the actual bootstrapping. After this, everything is about getting the answer out
 	  b<-boot(df,getFitParmsForBoot,R=iteratns,
             strata=df[,iv]) #strata has to be vector, not dataframe so have to include comma to get iv out
 	  #print('finished boot call, and boot returned:'); print(b)
 	  
 	  ciMethod= 'perc'  #'bca' don't use until investigate why sometimes get error. #with 'bca' boot method using Christina's data, get this error: Error in bca.ci(boot.out, conf, index[1L], L = L, t = t.o, t0 = t0.o,  :   estimated adjustment 'a' is NA
-	  ciMeanWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=1,type= ciMethod)    ) 
+	                          #index=1 meaning bootstrap only the mean?
+    ciMeanWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=1,type=ciMethod)    ) 
 	  
 	  if (length(attributes(ciMeanWithWarnings)$warningMsgs) >0) {
 	    print("ciMean boot.ci warned with:"); print(attributes(ciMeanWithWarnings)$warningMsgs); 
@@ -407,7 +407,7 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iv,iteratns,confInterval,verbos
 	  if (is.null(ciMeanWithWarnings)) #calculating statistic on resamplings always yielded the same value
 	    ciMean= data.frame(percent=c(-1,-1,-1,b$t[1,1],b$t[2,1]), bca=c(-1,-1,-1,b$t[1,1],b$t[2,1])) 
 	  #set both ends of CI to that value. Should take notice of warning
-	  
+	                                                   #index=2 meaning bootstrap only the slope?
 	  ciSlopeWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=2,type=ciMethod)    ) 
 	  if (length(attributes(ciSlopeWithWarnings)$warningMsgs) >0) {
 	    print("ciSlope boot.ci warned with:"); print(attributes(ciSlopeWithWarnings)$warningMsgs); 
@@ -418,7 +418,7 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iv,iteratns,confInterval,verbos
 	  
 	  ciSlope <- ciSlopeWithWarnings
 	  if (is.null(ciSlopeWithWarnings)) #calculating statistic on resamplings always yielded the same value
-	    #lapseRates not successfully bootstrapped, so set up dummy bootstrap value return
+	    #slope not successfully bootstrapped, so set up dummy bootstrap value return
 	    ciSlope= data.frame(percent=c(-1,-1,-1,b$t[1,2],b$t[2,2]), bca=c(-1,-1,-1,b$t[1,2],b$t[2,2])) 
 	  
 		slopesEachResampling=b$t[,2]
@@ -430,17 +430,19 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iv,iteratns,confInterval,verbos
 		  #b$t[failures,2]=-1
 		}
 		if (lapseMinMax[1] != lapseMinMax[2]) {
-  			ciLapseRateWithWarnings<- countWarnings(   boot.ci(b,conf=confInterval,index=3,type= ciMethod)     ) 
-  			if (length(attributes(ciLapseRateWithWarnings)$warningMsgs) >0) {
+                                                                   #4th parameter- lapseRate
+  			ciLapseRateWithWarnings<- countWarnings( boot.ci(b,conf=confInterval,index=4,type= ciMethod) ) 
+  			print('ciLapseRateWithWarnings='); print(ciLapseRateWithWarnings)
+        if (length(attributes(ciLapseRateWithWarnings)$warningMsgs) >0) {
   				print("ciSlope boot.ci warned with:"); print(attributes(ciLapseRateWithWarnings)$warningMsgs); 
   				if (verbosity>0) {
   					cat("but gave value of:"); print(ciLapseRateWithWarnings);
   				}
-  	    	}
+  	    }
   			ciLapseRate <- ciLapseRateWithWarnings
-  	    	if (is.null(ciLapseRateWithWarnings)) #calculating statistic on resamplings always yielded the same value
+  	    if (is.null(ciLapseRateWithWarnings)) #calculating statistic on resamplings always yielded the same value
   				#lapseRates not successfully bootstrapped, so set up dummy bootstrap value return
-  				ciLapseRate = data.frame(percent=c(-1,-1,-1,b$t[1,3],b$t[2,3]), bca=c(-1,-1,-1,b$t[1,3],b$t[2,3])) 
+  				ciLapseRate = data.frame(percent=c(-1,-1,-1,b$t[1,4],b$t[2,4]), bca=c(-1,-1,-1,b$t[1,4],b$t[2,4])) 
   			
   	} else { 
   			#lapseRates not bootstrapped, so set up dummy bootstrap value return
