@@ -5,7 +5,7 @@ source('helpers/psychometricHelpRobust6.R') #load my custom version of binomfit_
 varyLapseRate = FALSE
 #global variables needed by psychometricGgplotHelpRobust.R
 if (varyLapseRate) { lapseMinMax= c(0,0.05) }  else  #range of lapseRates to try for best fit
-	{ lapseMinMax = c(0.01,0.05) }
+	{ lapseMinMax = c(0.01,0.01) }
 chanceRate=.5
 factorsForBreakdown = c('exp','startLeft')
 
@@ -57,7 +57,7 @@ bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
 {
   getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=TRUE,verbosity=0)   
-  bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=40,
+  bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=200,
                                      confInterval=.6827)
   #calculate confidence interval for mean parameter and slope parameter
   paramCIs= ddply(dat,factorsPlusSubject,bootForDdply)
