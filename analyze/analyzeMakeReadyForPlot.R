@@ -1,12 +1,11 @@
 setwd("/Users/alexh/Documents/vision/neuropsych_palinopsia_Michael_Beckett/Szinte_Cavanagh_Spatiotopic/psychopy_SzinteCavanagh/analyze/")
-
 iv='tilt'
 source('helpers/psychometricHelpRobust6.R') #load my custom version of binomfit_lims
 
 varyLapseRate = FALSE
 #global variables needed by psychometricGgplotHelpRobust.R
 if (varyLapseRate) { lapseMinMax= c(0,0.05) }  else  #range of lapseRates to try for best fit
-	{ lapseMinMax = c(0.01,0.01) }
+	{ lapseMinMax = c(0.05,0.05) }
 chanceRate=.5
 factorsForBreakdown = c('exp','startLeft')
 
@@ -30,7 +29,7 @@ factorsPlusSubject[ length(factorsForBreakdown)+1 ]<- "subject"
 
 #fit psychometric functions to data ########################################
 initialMethod<-"brglm.fit"  # "glmCustomlink" #  
-getFitParms <- makeParamFit(iv,lapseMinMax,initialMethod,verbosity) #use resulting function for one-shot curvefitting
+getFitParms <- makeParamFit(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=TRUE,verbosity) #use resulting function for one-shot curvefitting
 getFitParmsPrintProgress <- function(df) {  #So I can see which fits yielded a warning, print out what was fitting first.
   cat("Finding best fit (calling fitParms) for ")
   for (i in 1:length(factorsPlusSubject) ) #Using a loop print them all on one line
@@ -49,7 +48,7 @@ fitParms <- ddply(dat, factorsPlusSubject, getFitParmsPrintProgress)
 
 #prediction tracking two if only can track one. myPlotCurve then calculates it.
 #use the fitted parameters to get the actual curves
-myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numPointsForPsychometricCurve)
+myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numPointsForPsychometricCurve,lapseAffectBothEnds=TRUE)
 #ddply(fitParms,factorsPlusSubject,function(df) { if (nrow(df)>1) {print(df); STOP} })  #debugOFF
 psychometrics<-ddply(fitParms,factorsPlusSubject,myPlotCurve)  
 psychometrics$correct <- psychometrics$pCorr #some functions expect one, some the other
@@ -57,7 +56,7 @@ psychometrics$correct <- psychometrics$pCorr #some functions expect one, some th
 bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
 {
-  getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,verbosity=0)   
+  getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=TRUE,verbosity=0)   
   bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=300,
                                      confInterval=.6827)
   #calculate confidence interval for mean parameter and slope parameter
@@ -73,7 +72,6 @@ if (bootstrapTheFit) ########################do bootstrapping of psychometric fu
 } #########end bootstrapping######################
 
 #Below are just helper functions. Consider migration into a helper function file
-
 #Usually ggplot with stat_summary will collapse the data into means, but for some plots and analyses can't do it that way.
 #Therefore calculate the means
 calcMeans<-function(df) {

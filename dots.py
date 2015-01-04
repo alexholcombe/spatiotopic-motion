@@ -338,7 +338,7 @@ if  nDone >0:
     print("Data was saved on each trial to", fileNameWithPath+'MANUAL.txt')
     fileNamePP = fileNameWithPath
     dfFromPP = trials.saveAsWideText(fileNamePP)
-    print("Psychopy's dataframe has been saved as", fileNamePP)
+    print("Psychopy's wideText has been saved as", fileNamePP)
     #dfFromPP.to_pickle(fileNameWithPath+"_DataFrame.pickle") #doing this to have a dataframe to test plotDataAndPsychometricCurve with in analyzeData.py
     fileNamePickle = fileNameWithPath #.psydat will automatically be appended
     trials.saveAsPickle(fileNamePickle)
