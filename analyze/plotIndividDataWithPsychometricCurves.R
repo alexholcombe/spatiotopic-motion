@@ -50,12 +50,15 @@ propCiForGgplot <- function(x,conf.int) {
   return (triplet)
 }
 
-thisExpDat <- subset(dat,exp==1)
-title<-paste('E',expThis,' individual Ss data',sep='')
-quartz(title,width=6,height=2.5) #,width=10,height=7)
-plotIndividDataAndCurves(thisExpDat,psychometricCurves=psychometrics,
-                         worstCasePychometricRegion=worstCasePsychometricRegion,rowFactor=".",colFactor="subject")
-figTitle = paste("../figures/bySubjectE",expThis,sep='')
-if (length(unique(thisExpDat$subject))==1) #only one subject
-  figTitle = paste(figTitle,unique(thisExpDat$subject)[1],sep='')
-ggsave( paste(figTitle,'.png',sep='')  )
+figDir = "../figures/"
+rowFactor = "durWithoutProbe"
+colFactor = "subject"
+thisDat <- subset(dat,exp==1)
+figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
+if (length(unique(thisDat$subject))==1) #only one subject
+  figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
+numSs = 
+quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
+plotIndividDataAndCurves(thisDat,psychometricCurves=psychometrics,
+                         worstCasePychometricRegion=worstCasePsychometricRegion,rowFactor="durWithoutProbe",colFactor="subject")
+ggsave( paste(figDir,figTitle,'.png',sep='')  )
