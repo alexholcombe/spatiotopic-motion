@@ -178,9 +178,11 @@ makeParamFit <- function(iv, lapseMinMax, initialMethod, lapseAffectBothEnds=FAL
     #data comes in one row per trial, but binomFit wants total correct, numTrials
     #so now I have to count number of correct, incorrect trials for each speed
     #assuming there's no other factors to worry about
+    if ( !(iv %in% names(df)) )
+      warning("your dataframe must contain iv as an independent variable",immediate.=TRUE)
     sumry = ddply(df,iv,summarizNumTrials) #also calculates chanceRate
-    print( paste("ddply df with factor ",iv, " summariz, yielding ")) #debugON
-    print(sumry) #debugON
+    #print( paste("ddply df with factor ",iv, " summariz, yielding ")) #debugOFF
+    #print(sumry) #debugOFF
     #curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
     returnAsDataframe=TRUE #this allows keeping the text of the warning messages. (Boot can't do this)
     fitParms = fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe,initialMethod,verbosity)
@@ -190,6 +192,33 @@ makeParamFit <- function(iv, lapseMinMax, initialMethod, lapseAffectBothEnds=FAL
   return (fn2)
 }
 
+#construct a function to use for function fitting and bootstrapping. Will be sent one row per trial
+makeParamFitForBoot <- function(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=FALSE,verbosity=0) { #default chancePerformanceRate=.5
+  #so boot function will provide a random list of idxs. The problem is partialling these out among speeds. Old way of doing it is putting the whole experiment in a single hat, so you can end up with
+  #fake datasets that don't even test at certain speeds
+  fn2 <- function(df,idxs) {
+    thisData <- df[idxs,]  
+    #data comes in one row per trial, but binomFit wants total correct, numTrials
+    #so now I have to count number of correct, incorrect trials for each speed
+    #assuming there's no other factors to worry about
+    if ( !(iv %in% names(df)) )
+      warning("your dataframe must contain iv as an independent variable",immediate.=TRUE)
+    sumry = ddply(thisData,iv,summarizNumTrials)
+    if (verbosity>1) {
+      print('sumry='); print(sumry)
+    }	
+    if ( nrow(sumry[iv])==1 )
+      print('boot has unluckily drawn a bootstrapped experiment with only one iv value. Perhaps stratify by iv') #actually, bootstrapping should have separate hats for each speed. this is called stratified bstrapping in R terms
+    returnAsDataframe=FALSE #Boot can't handle dataframes. Would allow keeping the text of the warning messages.
+    #sumry should have chanceRate as a field but I dont know if it does
+    fitParms<- fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe, initialMethod, verbosity)
+    if (verbosity>0) 
+      print( paste('fitParms=',fitParms) )
+    return( fitParms )
+    #return( c(fitParms$mean,fitParms$slope,fitParms$lapseRate) )
+  }
+  return( fn2 )
+}
 makeParamFitPrintProgress<-function(iv,factors,lapseMinMax,
                                     lapseAffectBothEnds,initialMethod,verbosity=0) { #use resulting function for one-shot curvefitting
   fn3<- function(df) {
@@ -220,33 +249,6 @@ fit <- function(dat,iv,factors,lapseMinMax,lapseAffectBothEnds,
   return (fitParms)
 }
 
-#construct a function to use for function fitting and bootstrapping. Will be sent one row per trial
-makeParamFitForBoot <- function(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=FALSE,verbosity=0) { #default chancePerformanceRate=.5
-    #so boot function will provide a random list of idxs. The problem is partialling these out among speeds. Old way of doing it is putting the whole experiment in a single hat, so you can end up with
-    #fake datasets that don't even test at certain speeds
-    fn2 <- function(df,idxs) {
-    	thisData <- df[idxs,]  
-    	#data comes in one row per trial, but binomFit wants total correct, numTrials
-    	#so now I have to count number of correct, incorrect trials for each speed
-    	#assuming there's no other factors to worry about
-    	if ( !(iv %in% names(df)) )
-    	  warning("your dataframe must contain speed as an independent variable",immediate.=TRUE)
-	    sumry = ddply(thisData,iv,summarizNumTrials)
-	    if (verbosity>1) {
-	    	print('sumry='); print(sumry)
-	    }	
-	    if ( nrow(sumry[iv])==1 )
-	    	print('boot has unluckily drawn a bootstrapped experiment with only one iv value. Not sure what to do') #actually, bootstrapping should have separate hats for each speed. this is called stratified bstrapping in R terms
-	    returnAsDataframe=FALSE #Boot can't handle dataframes. Would allow keeping the text of the warning messages.
-      #sumry should have chanceRate as a field but I dont know if it does
-      fitParms<- fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe, initialMethod, lapseAffectBothEnds, verbosity)
-	    if (verbosity>0) 
-  			print( paste('fitParms=',fitParms) )
-        return( fitParms )
-        #return( c(fitParms$mean,fitParms$slope,fitParms$lapseRate) )
-    }
-    return( fn2 )
-}
 
 makeMyPsychoCorr2<- function(iv, lapseAffectBothEnds=FALSE) { #Very similar to makeMyPlotCurve below, only for just one x
   fnToReturn<-function(df) {

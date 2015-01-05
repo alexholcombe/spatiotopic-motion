@@ -33,20 +33,18 @@ fitParms<-fit(thisDat,iv,factors,lapseMinMax=c(.01,.01),lapseAffectBothEnds=TRUE
 myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numxs=numPointsPerCurve,lapseAffectBothEnds=TRUE)
 psychometrics<-ddply(fitParms,factors,myPlotCurve)  
 psychometrics$correct <- psychometrics$pCorr #some functions expect one, some the other
-#DO THE CONFIDENCE INTERVAL
 
 source('plotIndividDataWithPsychometricCurves.R')
+colFactor=factors[1]
 rowFactor="."
-colFactor="subject"
  figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
  if (length(unique(thisDat$subject))==1) #only one subject
    figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
 
 # quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)  
-g<-plotIndividDataAndCurves(thisDat,psychometricCurves=NULL,worstCasePsychometricRegion=NULL,
+g<-plotIndividDataAndCurves(thisDat,psychometricCurves=psychometrics,worstCasePsychometricRegion=NULL,
                                      rowFactor=rowFactor,colFactor=colFactor) 
 ggsave( paste(figDir,figTitle,'.png',sep='')  )
-
 
 bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
