@@ -27,7 +27,9 @@ faceting=paste('~',facetCols,sep='')
 factorsPlusSubject<-factorsForBreakdown
 factorsPlusSubject[ length(factorsForBreakdown)+1 ]<- "subject"
 
-#fit psychometric functions to data ########################################
+dat$correct <- dat$respLeftRight #temporary bc fitting requires this to be dv
+
+##OLD BELOW###
 initialMethod<-"brglm.fit"  # "glmCustomlink" #  
 getFitParms <- makeParamFit(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=TRUE,verbosity) #use resulting function for one-shot curvefitting
 getFitParmsPrintProgress <- function(df) {  #So I can see which fits yielded a warning, print out what was fitting first.
@@ -56,24 +58,6 @@ myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numPointsForPsychometricCur
 #ddply(fitParms,factorsPlusSubject,function(df) { if (nrow(df)>1) {print(df); STOP} })  #debugOFF
 psychometrics<-ddply(fitParms,factorsPlusSubject,myPlotCurve)  
 psychometrics$correct <- psychometrics$pCorr #some functions expect one, some the other
-
-bootstrapTheFit = TRUE
-if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
-{
-  getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=TRUE,verbosity=0)   
-  bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=200,
-                                     confInterval=.6827)
-  #calculate confidence interval for mean parameter and slope parameter
-  paramCIs= ddply(dat,factorsPlusSubject,bootForDdply)
-  paramCIs$linkFx <- fitParms[1,"linkFx"] #needed by myPlotCurve. Assume boot is same
-  paramCIs$method <- fitParms[1,"method"] #needed by myPlotCurve. Assume boot is same
-  paramCIs$chanceRate <- fitParms[1,"chanceRate"] #needed by myPlotCurve. Assume boot is same
- 
-  minMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
-  
-  #calculate confidence region, to use with ggplot in other file
-  worstCasePsychometricRegion= ddply(paramCIs, factorsPlusSubject, minMaxWorstCaseCurves)
-} #########end bootstrapping######################
 
 #Below are just helper functions. Consider migration into a helper function file
 #Usually ggplot with stat_summary will collapse the data into means, but for some plots and analyses can't do it that way.

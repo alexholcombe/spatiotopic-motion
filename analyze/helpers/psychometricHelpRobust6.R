@@ -173,7 +173,6 @@ summarizNumTrials<-function(df) {
 
 #construct a function to use for one-shot (non-bootstrapping) fit
 makeParamFit <- function(iv, lapseMinMax, initialMethod, lapseAffectBothEnds=FALSE, verbosity=0) {
-  #verbosity passed to binomFitChanceRateFromDf
   #iv is independent variable
   fn2 <- function(df) {
     #data comes in one row per trial, but binomFit wants total correct, numTrials
@@ -182,13 +181,43 @@ makeParamFit <- function(iv, lapseMinMax, initialMethod, lapseAffectBothEnds=FAL
     sumry = ddply(df,iv,summarizNumTrials) #also calculates chanceRate
     print( paste("ddply df with factor ",iv, " summariz, yielding ")) #debugON
     print(sumry) #debugON
-  	#curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
+    #curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
     returnAsDataframe=TRUE #this allows keeping the text of the warning messages. (Boot can't do this)
-  	fitParms = fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe,initialMethod,lapseAffectBothEnds,verbosity)
-  	#print( paste('fitParms=',fitParms) )
-  	return( fitParms )
+    fitParms = fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe,initialMethod,verbosity)
+    #print( paste('fitParms=',fitParms) )
+    return( fitParms )
   }
   return (fn2)
+}
+
+makeParamFitPrintProgress<-function(iv,factors,lapseMinMax,
+                                    lapseAffectBothEnds,initialMethod,verbosity=0) { #use resulting function for one-shot curvefitting
+  fn3<- function(df) {
+    cat("Finding best fit (calling fitParms) for ")
+    for (i in 1:length(factors) ) #Using a loop print them all on one line
+      cat( paste( factors[i],"=",df[1,factors[i]])," " )
+    cat("\n")
+    if (length(unique(df[,iv]))==1) {
+      cat("Only one iv level, so not fitting psychometric function.")
+      return (data.frame())
+    }
+    #print( table(df[,iv]) ) #debugON    
+    getFitParms <- makeParamFit(iv,lapseMinMax,initialMethod,lapseAffectBothEnds,verbosity) #use resulting function for one-shot curvefitting
+    parms<- getFitParms(df)
+    return (parms)
+  }
+}
+
+#fit psychometric functions to data ########################################
+fit <- function(dat,iv,factors,lapseMinMax,lapseAffectBothEnds,
+                initialMethod="brglm.fit",verbosity=FALSE) 
+{  
+  fitAndPrintProgress<- makeParamFitPrintProgress(iv,factors,lapseMinMax,
+                           lapseAffectBothEnds,initialMethod,verbosity) #use resulting function for one-shot curvefitting
+  print(fitAndPrintProgress)
+  #fitAndPrintProgress(dat) #debugOFF
+  fitParms <- ddply(dat, factors, fitAndPrintProgress)
+  return (fitParms)
 }
 
 #construct a function to use for function fitting and bootstrapping. Will be sent one row per trial
@@ -486,6 +515,18 @@ makeMyMinMaxWorstCaseCurves<- function(myPlotCurve,iv) {
 		return(minmaxCIpsychometrics)
 	}
 	return (fn2)
+}
+
+library(PropCIs)
+propCiForGgplot <- function(x,conf.int) { #confidence interval for a proportion
+  numCorrect <- sum(x)
+  numTrials <- length(x)
+  CI <- blakerci(numCorrect,numTrials,conf.int) #Agresti-Coull, aka adjusted Wald method
+  #Blaker, H. (2000). Confidence curves and improved exact confidence intervals for discrete distributions,
+  #Canadian Journal of Statistics 28 (4), 783–798
+  CI <- CI$conf.int
+  triplet <- data.frame( y=numCorrect/numTrials, ymin=CI[1], ymax=CI[2] )
+  return (triplet)
 }
 
 #shortcut to set ggplot options, by adding this to a ggplot object, e.g. g + themeAxisTitleSpaceNoGridLinesLegendBox

@@ -165,18 +165,20 @@ summarizNumTrials<-function(df) {
 }  
 
 #construct a function to use for one-shot (non-bootstrapping) fit
-makeParamFit <- function(lapseMinMax, initialMethod, verbosity=0) {
-  #verbosity passed to binomFitChanceRateFromDf
+makeParamFit <- function(iv, lapseMinMax, initialMethod, lapseAffectBothEnds=FALSE, verbosity=0) {
+  #iv is independent variable
   fn2 <- function(df) {
     #data comes in one row per trial, but binomFit wants total correct, numTrials
     #so now I have to count number of correct, incorrect trials for each speed
-    #assuming there's no other factors to worry about 
-    sumry = ddply(df,.(speed),summarizNumTrials) #also calculates chanceRate
-  	#curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
-	returnAsDataframe=TRUE #this allows keeping the text of the warning messages. (Boot can't do this)
-  	fitParms = fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe,initialMethod,verbosity)
-  	#print( paste('fitParms=',fitParms) )
-  	return( fitParms )
+    #assuming there's no other factors to worry about
+    sumry = ddply(df,iv,summarizNumTrials) #also calculates chanceRate
+    print( paste("ddply df with factor ",iv, " summariz, yielding ")) #debugON
+    print(sumry) #debugON
+    #curveFit(sumry$speed,sumry$correct,sumry$numTrials,subjectname,lapsePriors,meanPriors,widthPriors,'MAPEstimation')  
+    returnAsDataframe=TRUE #this allows keeping the text of the warning messages. (Boot can't do this)
+    fitParms = fitBrglmKludge(sumry,lapseMinMax, returnAsDataframe,initialMethod,verbosity)
+    #print( paste('fitParms=',fitParms) )
+    return( fitParms )
   }
   return (fn2)
 }
@@ -420,6 +422,7 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iteratns,confInterval,verbosity
   	return (fnToReturn)
 }
 
+
 makeMyMinMaxWorstCaseCurves<- function(myPlotCurve) {
 	fn2<-function(df) { 
 		#calculate curves for factorial combination of the confidence interval parameters. Then, plot the most extreme of them all by assigning them to response.inf and response.sup
@@ -435,7 +438,6 @@ makeMyMinMaxWorstCaseCurves<- function(myPlotCurve) {
 	}
 	return (fn2)
 }
-
 
 
 threshStatistic= function(df) {	# Wing ADD20101111		

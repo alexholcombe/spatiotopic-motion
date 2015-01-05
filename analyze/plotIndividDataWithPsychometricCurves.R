@@ -2,7 +2,7 @@
 #dat
 #iv 
 #maybe write a function that plots the psychometric functions for a dataset / experiment /criterion,
-plotIndividDataAndCurves <- function(dat,psychometricCurves=NULL,worstCasePychometricRegion=NULL,
+plotIndividDataAndCurves <- function(dat,psychometricCurves=NULL,worstCasePsychometricRegion=NULL,
                                      rowFactor=".",colFactor=".") {
   #draw individual psychometric functions
   #to generalize below line, use aes_string
@@ -36,29 +36,20 @@ plotIndividDataAndCurves <- function(dat,psychometricCurves=NULL,worstCasePychom
                           guide=FALSE)  #actually guide=FALSE doesnt prevent lines from being drawn  
   }
   show(g)
+  return(g)
 }
 
-library(PropCIs)
-propCiForGgplot <- function(x,conf.int) {
-  numCorrect <- sum(x)
-  numTrials <- length(x)
-  CI <- blakerci(numCorrect,numTrials,conf.int) #Agresti-Coull, aka adjusted Wald method
-  #Blaker, H. (2000). Confidence curves and improved exact confidence intervals for discrete distributions,
-  #Canadian Journal of Statistics 28 (4), 783–798
-  CI <- CI$conf.int
-  triplet <- data.frame( y=numCorrect/numTrials, ymin=CI[1], ymax=CI[2] )
-  return (triplet)
-}
 
-figDir = "../figures/"
-rowFactor = "durWithoutProbe"
-colFactor = "subject"
-thisDat <- subset(dat,exp==1)
-figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
-if (length(unique(thisDat$subject))==1) #only one subject
-  figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
-numSs = 
-quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
-plotIndividDataAndCurves(thisDat,psychometricCurves=psychometrics,
-                         worstCasePychometricRegion=worstCasePsychometricRegion,rowFactor="durWithoutProbe",colFactor="subject")
-ggsave( paste(figDir,figTitle,'.png',sep='')  )
+# figDir = "../figures/"
+# rowFactor = "durWithoutProbe"
+# colFactor = "subject"
+# thisDat <- subset(dat,exp==1)
+# figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
+# if (length(unique(thisDat$subject))==1) #only one subject
+#   figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
+# quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
+# g<-plotIndividDataAndCurves(thisDat,psychometricCurves=psychometrics,
+#                          worstCasePychometricRegion=worstCasePsychometricRegion,rowFactor="durWithoutProbe",colFactor="subject")
+#   
+#   
+# ggsave( paste(figDir,figTitle,'.png',sep='')  )

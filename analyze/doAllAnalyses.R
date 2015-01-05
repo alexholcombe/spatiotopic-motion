@@ -10,13 +10,75 @@ datMB$ran=NA; datMB$order=NA #because wasnt saved by psychopy-native, I guess
 #dat=version.merge(datMB,datE1,verbose=TRUE) #better than R-base "merge" command
 dat=rbind(datMB,datE1)
 expName="SzinteCavanagh" 
+figDir = "../figures/"
 
+source('helpers/psychometricHelpRobust6.R') #load fit,
 # colsNotInE1 = setdiff(colnames(dat),colnames(datE1))
 # datE1[,colsNotInE1] = -999 #dummy value
 # colsNotInThisOne = setdiff(colnames(datE1),colnames(dat))
 # dat[,colsNotInThisOne] = -999 #dummy value
 # dat = rbind(dat,datE1)
+expThis=1
+iv="tilt"
+xLims=c(-1,1)
+numPointsPerCurve=150
 
+thisDat <- subset(dat,exp==expThis)
+factors=c("subject","startLeft")
+thisDat$correct = thisDat$respLeftRight
+initialMethod<-"brglm.fit"  
+fitParms<-fit(thisDat,iv,factors,lapseMinMax=c(.01,.01),lapseAffectBothEnds=TRUE,
+              initialMethod=initialMethod,verbosity=FALSE) 
+#calculate psychometric curves
+myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numxs=numPointsPerCurve,lapseAffectBothEnds=TRUE)
+psychometrics<-ddply(fitParms,factors,myPlotCurve)  
+psychometrics$correct <- psychometrics$pCorr #some functions expect one, some the other
+#DO THE CONFIDENCE INTERVAL
+
+source('plotIndividDataWithPsychometricCurves.R')
+rowFactor="."
+colFactor="subject"
+ figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
+ if (length(unique(thisDat$subject))==1) #only one subject
+   figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
+
+# quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)  
+g<-plotIndividDataAndCurves(thisDat,psychometricCurves=NULL,worstCasePsychometricRegion=NULL,
+                                     rowFactor=rowFactor,colFactor=colFactor) 
+ggsave( paste(figDir,figTitle,'.png',sep='')  )
+
+
+bootstrapTheFit = TRUE
+if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
+{
+  getFitParmsForBoot <- makeParamFitForBoot(iv,lapseMinMax,initialMethod,lapseAffectBothEnds=TRUE,verbosity=0)   
+  bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,iv="tilt",iteratns=200,
+                                     confInterval=.6827)
+  #calculate confidence interval for mean parameter and slope parameter
+  paramCIs= ddply(dat,factors,bootForDdply)
+  paramCIs$linkFx <- fitParms[1,"linkFx"] #needed by myPlotCurve. Assume boot is same
+  paramCIs$method <- fitParms[1,"method"] #needed by myPlotCurve. Assume boot is same
+  paramCIs$chanceRate <- fitParms[1,"chanceRate"] #needed by myPlotCurve. Assume boot is same
+  minMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
+  worstCasePsychometricRegion= ddply(paramCIs, factors, minMaxWorstCaseCurves)
+} #########end bootstrapping######################
+
+
+
+#plot
+
+colFactor = factors[1]
+colorFactor = factors[2]
+rowFactor="."
+figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
+if (length(unique(thisDat$subject))==1) #only one subject
+  figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
+quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
+g<-plotIndividDataAndCurves(thisDat,psychometricCurves=psychometrics,
+                            worstCasePsychometricRegion=NULL,rowFactor="durWithoutProbe",colFactor="subject")
+ggsave( paste(figDir,figTitle,'.png',sep='')  )
+
+#OLD BELOW
 source('analyzeMakeReadyForPlot.R') #returns fitParms, psychometrics, and function calcPctCorrThisSpeed
 source('plotIndividDataWithPsychometricCurves.R') 
 #should also do it normalizing by subjects' speed limits
