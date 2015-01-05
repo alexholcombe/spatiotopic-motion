@@ -412,7 +412,7 @@ options(warn=0) #needs to be 0, otherwise no way to catch warnings while also le
 ########################do bootstrapping####################
 #get confidence interval on parameters, so can draw confidence region
 #bootstrap for each subset of experiment sent by ddply
-makeMyBootForDdply<- function(getFitParmsForBoot,iv,iteratns,confInterval,verbosity=0) {  #create a psychometric curve plotting function over specified domain
+makeMyBootForDdply<- function(getFitParmsForBoot,iv,lapseMinMax,iteratns,confInterval,verbosity=0) {  #create a psychometric curve plotting function over specified domain
 	#assumes getFitParmsForBoot has already been constructed
   #For the parametric bootstrap it is necessary for the user to specify how the resampling is to be #conducted. The best way of accomplishing this is to specify the function ran.gen which will return a #simulated data set from the observed data set and a set of parameter estimates specified in mle	
 	fnToReturn<-function(df) {
