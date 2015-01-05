@@ -44,11 +44,12 @@ for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each 
   thisExpDat <- subset(dat,exp==expThis)
   #thisExpDat$saccadeDir <- c("leftward","rightward")[ thisExpDat$startLeft + 1 ]
   g=ggplot(data= thisExpDat,aes(x=tilt,y=correct,color=factor(startLeft)))  
-  g=g+stat_summary(fun.y=mean,geom="point",alpha=.95)
+  g=g+stat_summary(fun.y=mean,geom="point",alpha=.95) + theme_bw()
   colrs = ggplot_build(g)$data[[1]]$colour #returns colors auto-chosen by ggplot http://stackoverflow.com/questions/15130497/changing-ggplot-factor-colors
   #have to indicate colors when change legend values and name below 
   g=g+scale_color_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="")
-  g=g+facet_grid(. ~ subject)+theme_bw()
+  g=g+facet_grid(. ~ subject)
+  g=g+facet_grid(durWithoutProbe ~ subject)
   g=g+theme(panel.grid.minor=element_blank(),panel.grid.major=element_blank())# hide all gridlines.
   #g<-g+ coord_cartesian( xlim=c(xLims[1],xLims[2]), ylim=yLims ) #have to use coord_cartesian here instead of naked ylim()
   show(g)
@@ -56,7 +57,7 @@ for ( expThis in sort(unique(dat$exp)) ) {  #draw individual Ss' data, for each 
   thisPsychometrics <- subset(psychometrics,exp==expThis)
   thisPsychometrics$correct = thisPsychometrics$pCorr 
   g=g+geom_line(data=thisPsychometrics)
-  g=g+ geom_hline(mapping=aes(yintercept=chanceRate),lty=2)  #draw horizontal line for chance performance
+  g=g+ geom_vline(mapping=aes(xintercept=0),lty=2)  #draw horizontal line for chance performance
   g=g+xlab(iv)+ylab('Proportion respLeftRight')
   #g<- g+ theme(axis.title.y=element_text(size=12,angle=90),axis.text.y=element_text(size=10),axis.title.x=element_text(size=12),axis.text.x=element_text(size=10))
   #g<-g+ scale_x_continuous(breaks=c(0.5,1.0,1.5,2.0,2.5),labels=c("0.5","","1.5","","2.5"))

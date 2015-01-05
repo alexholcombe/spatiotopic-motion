@@ -6,8 +6,8 @@ varyLapseRate = FALSE
 #global variables needed by psychometricGgplotHelpRobust.R
 if (varyLapseRate) { lapseMinMax= c(0,0.05) }  else  #range of lapseRates to try for best fit
 	{ lapseMinMax = c(0.01,0.01) }
-chanceRate=.5
-factorsForBreakdown = c('exp','startLeft')
+#factorsForBreakdown = c('exp','startLeft')
+factorsForBreakdown = c('exp','startLeft','durWithoutProbe')
 
 xLims=c(-1,1)
 yLims=c(-.05,1.05)
@@ -35,7 +35,11 @@ getFitParmsPrintProgress <- function(df) {  #So I can see which fits yielded a w
   for (i in 1:length(factorsPlusSubject) ) #Using a loop print them all on one line
     cat( paste( factorsPlusSubject[i],"=",df[1,factorsPlusSubject[i]])," " )
   cat("\n")
-  print( table(df$Tilt) ) #debugON
+  if (length(unique(df$tilt))==1) {
+    cat("Only one tilt value, so not fitting psychometric function.")
+    return (data.frame())
+  }
+  print( table(df$tilt) ) #debugON
   return( getFitParms(df) )
 }
 dat$subject <- factor(dat$subject)

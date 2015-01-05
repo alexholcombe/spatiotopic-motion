@@ -3,10 +3,12 @@
 setwd("/Users/alexh/Documents/vision/neuropsych_palinopsia_Michael_Beckett/Szinte_Cavanagh_Spatiotopic/psychopy_SzinteCavanagh/analyze/")
 expName="123targets269objects" 
 load("../data/MB.RData",verbose=TRUE) #E1 #returns dat
-datMB <- dat; datMB$tilt <- datMB$Tilt
+datMB <- dat
 load("../data/E1.RData",verbose=TRUE) #E1 #returns dat
-
 datE1 = dat
+datMB$ran=NA; datMB$order=NA #because wasnt saved by psychopy-native, I guess
+#dat=version.merge(datMB,datE1,verbose=TRUE) #better than R-base "merge" command
+dat=rbind(datMB,datE1)
 expName="SzinteCavanagh" 
 
 # colsNotInE1 = setdiff(colnames(dat),colnames(datE1))
