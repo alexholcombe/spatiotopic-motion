@@ -197,12 +197,16 @@ makeParamFitForBoot <- function(iv,lapseMinMax,initialMethod,lapseAffectBothEnds
   #so boot function will provide a random list of idxs. The problem is partialling these out among speeds. Old way of doing it is putting the whole experiment in a single hat, so you can end up with
   #fake datasets that don't even test at certain speeds
   fn2 <- function(df,idxs) {
-    thisData <- df[idxs,]  
     #data comes in one row per trial, but binomFit wants total correct, numTrials
     #so now I have to count number of correct, incorrect trials for each speed
     #assuming there's no other factors to worry about
     if ( !(iv %in% names(df)) )
       warning("your dataframe must contain iv as an independent variable",immediate.=TRUE)
+    if (length(unique(df[,iv]))==1) {
+      cat("Only one iv level, so not fitting psychometric function.")
+      return (data.frame())
+    }
+    thisData <- df[idxs,]  
     sumry = ddply(thisData,iv,summarizNumTrials)
     if (verbosity>1) {
       print('sumry='); print(sumry)
@@ -421,6 +425,11 @@ makeMyBootForDdply<- function(getFitParmsForBoot,iv,lapseMinMax,iteratns,confInt
 	  if (verbosity) { print('boostrapping with'); print(df[1,]) }
 	  #lastDfForBoot <<-df
     #do all the actual bootstrapping. After this, everything is about getting the answer out
+    print( table(df[iv]) ) #debugON
+	  if (length(unique(df[,iv]))==1) {
+	    cat("Only one iv level, so not passing to boot.")
+      return (data.frame()) #this should prevent any entries for this condition in final dataframe
+	  }
 	  b<-boot(df,getFitParmsForBoot,R=iteratns,
             strata=df[,iv]) #strata has to be vector, not dataframe so have to include comma to get iv out
 	  #print('finished boot call, and boot returned:'); print(b)

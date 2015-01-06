@@ -19,14 +19,15 @@ lapseMinMax=c(.01,.01)
 xLims=c(-1,1)
 numPointsPerCurve=150
 thisDat <- subset(dat,exp==expThis)
-factors=c("subject","startLeft")
+factors<-c("subject","startLeft","durWithoutProbe")
+names(factors) <- c("columns","color","rows")
 thisDat$correct = thisDat$respLeftRight
 initialMethod<-"brglm.fit"  
-fitParms<-fit(thisDat,iv,factors,lapseMinMax,lapseAffectBothEnds=TRUE,
+fitParms<-fit(thisDat,iv,unname(factors),lapseMinMax,lapseAffectBothEnds=TRUE,
               initialMethod=initialMethod,verbosity=FALSE) 
 #calculate psychometric curves
 myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numxs=numPointsPerCurve,lapseAffectBothEnds=TRUE)
-psychometrics<-ddply(fitParms,factors,myPlotCurve)  
+psychometrics<-ddply(fitParms,unname(factors),myPlotCurve)  
 
 source('plotIndividDataWithPsychometricCurves.R')
 # quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)  
@@ -37,24 +38,20 @@ if (bootstrapTheFit) ########################do bootstrapping of psychometric fu
   bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,"tilt",lapseMinMax,iteratns=200,
                                      confInterval=.6827)
   #calculate confidence interval for mean parameter and slope parameter
-  paramCIs= ddply(thisDat,factors,bootForDdply)
+  paramCIs= ddply(thisDat,unname(factors),bootForDdply)
   #below command because these fields needed by PlotCurve. Assume boot used same as fitParms
   paramCIs[,c("linkFx","method","chanceRate")]=fitParms[1,c("linkFx","method","chanceRate")]
   calcMinMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
-  worstCasePsychometricRegion= ddply(paramCIs, factors, calcMinMaxWorstCaseCurves)
+  worstCasePsychometricRegion= ddply(paramCIs, unname(factors), calcMinMaxWorstCaseCurves)
 } else  #########end bootstrapping######################
 { worstCasePsychometricRegion = NULL }
 
 #plot
-colFactor = factors[1]
-colorFactor = factors[2]
-rowFactor="."
-figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
+figTitle = paste("E",expThis,"_",factors["rows"],"_by_",factors["columns"],sep='')
 if (length(unique(thisDat$subject))==1) #only one subject
   figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
 #quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
-g<-plotIndividDataAndCurves(thisDat,iv,psychometrics,worstCasePsychometricRegion,
-                      colorFactor,rowFactor="durWithoutProbe",colFactor="subject")
+g<-plotIndividDataAndCurves(thisDat,iv,psychometrics,worstCasePsychometricRegion,factors)
 ggsave( paste(figDir,figTitle,'.png',sep='')  )
 
 source("extractThreshesAndPlot.R") #provides threshes, plots
