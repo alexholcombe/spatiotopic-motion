@@ -341,6 +341,7 @@ makeMyPlotCurve4<- function(iv,xmin,xmax,numxs,lapseAffectBothEnds=FALSE) {#crea
     df = data.frame(xs,pfit,pfit)
     
     colnames(df) <- c(iv,"pCorr","pfit")
+    df$correct <- df$pCorr #some subsequent function needs it to be called correct
     #print("returning curve with head()"); print(head(df)) #debugOFF
     return(df)
   }

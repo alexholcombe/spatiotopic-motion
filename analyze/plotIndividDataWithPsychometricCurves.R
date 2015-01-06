@@ -2,16 +2,16 @@
 #dat
 #iv 
 #maybe write a function that plots the psychometric functions for a dataset / experiment /criterion,
-plotIndividDataAndCurves <- function(dat,psychometricCurves=NULL,worstCasePsychometricRegion=NULL,
-                                     rowFactor=".",colFactor=".") {
+plotIndividDataAndCurves <- function(dat,iv,psychometricCurves=NULL,worstCasePsychometricRegion=NULL,
+                                     colorFactor=".",rowFactor=".",colFactor=".") {
   #draw individual psychometric functions
   #to generalize below line, use aes_string
   #thisExpDat$saccadeDir <- c("leftward","rightward")[ thisExpDat$startLeft + 1 ]
-  g=ggplot(data= dat,aes(x=tilt,y=correct,color=factor(startLeft)))  
+  g=ggplot(data= dat,aes_string(x=iv,y="correct",color=colorFactor))  
   g=g+stat_summary(fun.y=mean,geom="point",alpha=.95) + theme_bw()
-  colrs = ggplot_build(g)$data[[1]]$colour #returns colors auto-chosen by ggplot http://stackoverflow.com/questions/15130497/changing-ggplot-factor-colors
   #have to indicate colors when change legend values and name below 
-  g=g+scale_color_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="")
+  #colrs = ggplot_build(g)$data[[1]]$colour #returns colors auto-chosen by ggplot http://stackoverflow.com/questions/15130497/changing-ggplot-factor-colors
+  #g=g+scale_color_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="")
   if (rowFactor != "." | colFactor != ".") {
       facetString = paste(rowFactor,"~",colFactor)
       g=g+facet_grid(facetString)
@@ -31,9 +31,12 @@ plotIndividDataAndCurves <- function(dat,psychometricCurves=NULL,worstCasePsycho
   g<-g+stat_summary(fun.data="propCiForGgplot",geom="errorbar",conf.int=.685,size=.2, width=.12) 
   if (!is.null(worstCasePsychometricRegion)) {
     worstCasePsychometricRegion$correct=.5 #in this df tp send to geom_ribbon, must have y-variable that was specified in initial call, otherwise ggplot tries to do something funky that results in an error
-    g=g+geom_ribbon(data=worstCasePsychometricRegion,aes(x=tilt,ymin=lower,ymax=upper,color=NULL,fill=factor(startLeft)),alpha=0.2)
-    g=g+scale_fill_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="",
-                          guide=FALSE)  #actually guide=FALSE doesnt prevent lines from being drawn  
+    #g=g+geom_ribbon(data=worstCasePsychometricRegion,aes(x=tilt,ymin=lower,ymax=upper,
+    #                                                     color=NULL,fill=factor(startLeft)),alpha=0.2)
+    g=g+geom_ribbon(data=worstCasePsychometricRegion,aes_string(x=iv,ymin="lower",ymax="upper",
+                                                    color=NULL,fill=colorFactor,alpha=0.2))
+    #g=g+scale_fill_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="",
+    #                      guide=FALSE)  #actually guide=FALSE doesnt prevent lines from being drawn  
   }
   show(g)
   return(g)
