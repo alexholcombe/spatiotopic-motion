@@ -13,18 +13,14 @@ expName="SzinteCavanagh"
 figDir = "../figures/"
 
 source('helpers/psychometricHelpRobust6.R') #load fit,
-# colsNotInE1 = setdiff(colnames(dat),colnames(datE1))
-# datE1[,colsNotInE1] = -999 #dummy value
-# colsNotInThisOne = setdiff(colnames(datE1),colnames(dat))
-# dat[,colsNotInThisOne] = -999 #dummy value
-# dat = rbind(dat,datE1)
+
 expThis=1
 iv="tilt"
 lapseMinMax=c(.01,.01)
 xLims=c(-1,1)
 numPointsPerCurve=150
-
 thisDat <- subset(dat,exp==expThis)
+
 factors=c("subject","startLeft")
 thisDat$correct = thisDat$respLeftRight
 initialMethod<-"brglm.fit"  
@@ -43,10 +39,6 @@ rowFactor="."
    figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
 
 # quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)  
-g<-plotIndividDataAndCurves(thisDat,psychometricCurves=psychometrics,worstCasePsychometricRegion=NULL,
-                                     rowFactor=rowFactor,colFactor=colFactor) 
-ggsave( paste(figDir,figTitle,'.png',sep='')  )
-
 bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
 {
@@ -55,11 +47,10 @@ if (bootstrapTheFit) ########################do bootstrapping of psychometric fu
                                      confInterval=.6827)
   #calculate confidence interval for mean parameter and slope parameter
   paramCIs= ddply(thisDat,factors,bootForDdply)
-  paramCIs$linkFx <- fitParms[1,"linkFx"] #needed by myPlotCurve. Assume boot is same
-  paramCIs$method <- fitParms[1,"method"] #needed by myPlotCurve. Assume boot is same
-  paramCIs$chanceRate <- fitParms[1,"chanceRate"] #needed by myPlotCurve. Assume boot is same
-  minMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
-  worstCasePsychometricRegion= ddply(paramCIs, factors, minMaxWorstCaseCurves)
+  #below command because these fields needed by PlotCurve. Assume boot used same as fitParms
+  paramCIs[,c("linkFx","method","chanceRate")]=fitParms[1,c("linkFx","method","chanceRate")]
+  calcMinMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
+  worstCasePsychometricRegion= ddply(paramCIs, factors, calcMinMaxWorstCaseCurves)
 } #########end bootstrapping######################
 else { worstCasePsychometricRegion = NULL }
 
@@ -75,8 +66,8 @@ g<-plotIndividDataAndCurves(thisDat,psychometrics,
                             worstCasePsychometricRegion,rowFactor="durWithoutProbe",colFactor="subject")
 ggsave( paste(figDir,figTitle,'.png',sep='')  )
 
-
 source("extractThreshesAndPlot.R") #provides threshes, plots
+#IM GOING TO NEED AN ERROR BAR FOR EACH SUBJECT ON A THRESH PLOT
 
 #save threshes to file
 varName=paste("threshes_",iv,"_",expName,sep='') #combine threshes
