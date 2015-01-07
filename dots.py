@@ -338,8 +338,8 @@ if  nDone >0:
     print("Most Psychopy-ic method: trials trialHandler has been saved as", fileNamePickle, "should include copy of code")
                       
     #df.dtypes in my case are  "objects". you can't take the mean
-    df = df.convert_objects(convert_numeric=True) #convert dtypes from object to numeric
-    #print('df.dtypes=\n',df.dtypes)
+    df = dfFromPP
+    print('df.dtypes=\n',df.dtypes)
    
     #Fit and plot data
     fig = plotDataAndPsychometricCurve(df, dataFileName=None)

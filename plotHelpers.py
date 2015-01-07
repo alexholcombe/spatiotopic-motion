@@ -1,4 +1,5 @@
-from psychopy import visual, data, logging, tools
+from psychopy import visual, data, logging
+from psychopy.misc import fromFile
 import itertools
 from math import log
 from copy import deepcopy
@@ -26,10 +27,13 @@ def plotDataAndPsychometricCurve(df, dataFileName):
             print 'dataFileName = ', dataFileName
             raise Exception("No df supplied and no string dataFileName supplied")
         if dataFileName.endswith('.pickle'):
-            df = tools.filetools.fromFile(dataFileName)
+            df = fromFile(dataFileName)
         elif dataFileName.endswith('.txt'):
-            df = pandas.read_csv(dataFileName, delimiter='\t')
-        #Also need to be able to handle .psydat
+            df = pd.read_csv(dataFileName, delimiter='\t')
+        elif dataFileName.endswith('.psydat'):
+            trialHandler = fromFile(dataFileName)
+            raise Exception('Cant handle .psydat file, because first Alex has to write a toDataFrame function for experimentHandler, so that its data can be analyzed.')
+            #or would have to save to save trialHandler saveAsWideText to dummy file, and use returned dataframe
         #dat = tools.filetools.fromFile(dataFileName) #<class 'psychopy.data.DataHandler'>
     if not isinstance(df, pd.core.frame.DataFrame):
         raise Exception("Don't have viable DataFrame still")
@@ -224,8 +228,10 @@ def plotStaircaseDataAndPsychometricCurve(fit,IV_name,DV_name,intensities,resps,
 #    pylab.savefig(outputFile)
 
 if __name__=='__main__':  #Running this helper file, must want to test functions in this file
-    #dataFileName = "data/Hubert_spatiotopicMotion_03Dec2014_15-49.psydat"
-    dataFileName="data/raw/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
+    #dataFileName="data/raw/Alex/Alex_spatiotopicMotion_15Dec2014_16-25_DataFrame.pickle"
+    dataFileName="data/raw/Alex/Alex_spatiotopicMotion_15Dec2014_16-25_PSYCHOPY.txt"
+    #dataFileName='data/raw/LK/LK100_spatiotopicMotion_02Jan2015_15-46.txt'
+    #dataFileName='data/raw/LK/LK100_spatiotopicMotion_02Jan2015_15-46.psydat'
     fig = plotDataAndPsychometricCurve(None, dataFileName)
     pylab.savefig('figures/examples/AlexResults.png') #, bbox_inches='tight')
     print('The plot has been saved, as figures/examples/AlexResults.png')
