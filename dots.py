@@ -57,7 +57,6 @@ else:
     dataDir='.'
 fName = participant+'_spatiotopicMotion_'+timeAndDateStr
 fileNameWithPath = os.path.join(dataDir, fName)
-dataFile = open(fileNameWithPath+'MANUAL.txt', 'w')  # sys.stdout  #StringIO.StringIO()
 saveCodeCmd = 'cp \'' + sys.argv[0] + '\' '+ fileNameWithPath + '.py'
 os.system(saveCodeCmd)  #save a copy of the code as it was when that subject was run
 logFname = fileNameWithPath+'.log' 
@@ -238,8 +237,6 @@ def oneFrameOfStim(n,targetDotPos,foilDotPos,probePos1,probePos2): #trial stimul
     foilDot.draw()
     myWin.flip()
 
-print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\trespLeftRight', file=dataFile)
-
 expStop = False
 nDone = 0
 while nDone < trials.nTotal and not expStop:
@@ -305,11 +302,7 @@ while nDone < trials.nTotal and not expStop:
             df['respLeftRight'][nDone] = respLeftRight
             trials.data.add('respLeftRight', respLeftRight) #switching to using psychopy-native ways of storing, saving data 
             print(df.loc[nDone-1:nDone]) #print this trial and previous trial, only because theres no way to print object (single record) in wide format
-        #print('trialnum\tsubject\tprobeX\tprobeY\tstartLeft\tupDown\tTilt\tJitter\tDirection\t', file=dataFile)
-        #Should be able to print from the dataFrame in csv format
-        oneTrialOfData = (str(nDone)+'\t'+participant+'\t'+ "%2.2f\t"%thisTrial['probeX'] + "%2.2f\t"%thisTrial['probeY'] + "%r\t"%thisTrial['startLeft'] +
-                                    "%r\t"%thisTrial['upDown'] +  "%r\t"%thisTrial['tilt'] + "%r\t"%thisTrial['jitter']+ "%r"%respLeftRight)
-        print(oneTrialOfData, file= dataFile)
+            
         if nDone< trials.nTotal-1:
             betweenTrialsText.draw()
             progressMsg = 'Completed trial number ' + str(nDone) + ' (' + str(trials.nTotal) + ' trials in total )'
@@ -327,7 +320,7 @@ while nDone < trials.nTotal and not expStop:
             myWin.clearBuffer()
         nDone+=1
 
-dataFile.flush(); logging.flush()
+logging.flush()
 myWin.close()
 
 if expStop:
