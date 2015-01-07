@@ -50,7 +50,6 @@ threshCriterion<-0.5
 myThreshGet= makeMyThreshGetNumerically(iv,threshCriterion)
 threshesThis = ddply(psychometrics,unname(factors),myThreshGet) 
 fitParms<- merge(threshesThis,fitParms)
-
 #plot
 figTitle = paste("E",expThis,"_",factors["rows"],"_by_",factors["columns"],sep='')
 if (length(unique(thisDat$subject))==1) #only one subject
@@ -59,21 +58,16 @@ if (length(unique(thisDat$subject))==1) #only one subject
 g<-plotIndividDataAndCurves(thisDat,iv,factors,psychometrics,worstCasePsychometricRegion,threshesThis)
 #PUT AN ERROR BAR ON THE INDIVIDUAL PARTICIPANT'S THRESH?
 ggsave( paste(figDir,figTitle,'.png',sep='')  )
-
-
-
-source("extractThreshesAndPlot.R") #provides threshes, plots
+#################################################################################################
 #ALSO LOOK AT JITTER AND UP/DOWN
 #LOOK AT UP/DOWN
 factors=c("subject","startLeft","upDown")
+names(factors) <- c("columns","color","rows")
 fitParms<-fit(thisDat,iv,factors,lapseMinMax,lapseAffectBothEnds=TRUE,
               initialMethod=initialMethod,verbosity=FALSE) 
 psychometrics<-ddply(fitParms,factors,myPlotCurve)  
-colFactor=factors[1]
-rowFactor="."
 if (length(unique(thisDat$subject))==1) #only one subject
   figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
-
 # quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)  
 bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
@@ -82,25 +76,24 @@ if (bootstrapTheFit) ########################do bootstrapping of psychometric fu
   bootForDdply <- makeMyBootForDdply(getFitParmsForBoot,"tilt",lapseMinMax,iteratns=200,
                                      confInterval=.6827)
   #calculate confidence interval for mean parameter and slope parameter
-  paramCIs= ddply(thisDat,factors,bootForDdply)
+  paramCIs= ddply(thisDat,unname(factors),bootForDdply)
   #below command because these fields needed by PlotCurve. Assume boot used same as fitParms
   paramCIs[,c("linkFx","method","chanceRate")]=fitParms[1,c("linkFx","method","chanceRate")]
   calcMinMaxWorstCaseCurves<- makeMyMinMaxWorstCaseCurves(myPlotCurve,iv)
-  worstCasePsychometricRegion= ddply(paramCIs, factors, calcMinMaxWorstCaseCurves)
-} #########end bootstrapping######################
-else { worstCasePsychometricRegion = NULL }
+  worstCasePsychometricRegion= ddply(paramCIs, unname(factors), calcMinMaxWorstCaseCurves)
+} else  #########end bootstrapping######################
+{ worstCasePsychometricRegion = NULL }
+#extract threshes 
+myThreshGet= makeMyThreshGetNumerically(iv,threshCriterion)
+threshesThis = ddply(psychometrics,unname(factors),myThreshGet) 
+fitParms<- merge(threshesThis,fitParms)
 #plot
-colFactor = factors[1]
-colorFactor = factors[3]
-rowFactor=factors[2]
-figTitle = paste("E",expThis,"_",rowFactor,"_by_",colFactor,sep='')
+figTitle = paste("E",expThis,"_",factors["rows"],"_by_",factors["columns"],sep='')
 if (length(unique(thisDat$subject))==1) #only one subject
   figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
 quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
-g<-plotIndividDataAndCurves(thisDat,psychometrics,
-                            worstCasePsychometricRegion,rowFactor,colFactor)
+g<-plotIndividDataAndCurves(thisDat,iv,factors,psychometrics,worstCasePsychometricRegion,threshesThis)
 ggsave( paste(figDir,figTitle,'.png',sep='')  )
-
 #IM GOING TO NEED AN ERROR BAR FOR EACH SUBJECT ON A THRESH PLOT
 
 #save threshes to file
