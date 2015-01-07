@@ -360,7 +360,8 @@ makeMyThreshGetNumerically<- function(iv,threshCriterion) {#create function that
       warning("your dataframe must have a column named 'correct'",immediate.=TRUE)
     ans<- tryCatch( {
       threshSlop<- threshold_slope(df$correct,df[,iv],criterion= threshCriterion)
-      return( data.frame(thresh=threshSlop$x_th, slopeThisCrit=threshSlop$slope, error=FALSE) )
+      return( data.frame(threshThisCrit=threshSlop$x_th, slopeThisCrit=threshSlop$slope, 
+                         criterion=threshCriterion, error=FALSE) )
     }, 
                     error = function(e) {
                       cat("\nERROR occurred with")  
@@ -375,7 +376,8 @@ makeMyThreshGetNumerically<- function(iv,threshCriterion) {#create function that
                       if ("numTargets" %in% names(df))
                         cat(paste('numTargets=',df$numTargets[1])) #debugON
                       print(e)
-                      return( data.frame(thresh=NA, slopeThisCrit=NA, error=TRUE) )
+                      return( data.frame(threshThisCrit=NA, slopeThisCrit=NA, 
+                                         criterion=threshCriterion,error=TRUE) )
                     }#,
                     #       finally = function(e) { #just return the normal answer
                     #         return( data.frame(thresh=threshSlop$x_th, error=FALSE) )

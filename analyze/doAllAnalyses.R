@@ -46,13 +46,23 @@ if (bootstrapTheFit) ########################do bootstrapping of psychometric fu
 } else  #########end bootstrapping######################
 { worstCasePsychometricRegion = NULL }
 
+#extract threshes 
+threshCriterion<-0.5
+myThreshGet= makeMyThreshGetNumerically(iv,threshCriterion)
+threshesThis = ddply(psychometrics,unname(factors),myThreshGet) 
+fitParms<- merge(threshesThis,fitParms)
+
 #plot
 figTitle = paste("E",expThis,"_",factors["rows"],"_by_",factors["columns"],sep='')
 if (length(unique(thisDat$subject))==1) #only one subject
   figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
 #quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
 g<-plotIndividDataAndCurves(thisDat,iv,psychometrics,worstCasePsychometricRegion,factors)
+#add threshlines
+
 ggsave( paste(figDir,figTitle,'.png',sep='')  )
+
+
 
 source("extractThreshesAndPlot.R") #provides threshes, plots
 #ALSO LOOK AT JITTER AND UP/DOWN
