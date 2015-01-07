@@ -399,19 +399,17 @@ makeMyThreshGetAnalytically<- function(threshCriterion,linkingFunctionType) { #c
   }
 }
 
-threshLine <- function(df) {   #should be sent a one-row piece of data frame with threshold speed the last column
-	#assumes that df has column "thresh"
-	threshes = df$thresh
-	speeds=c(0,threshes[1],threshes[1])
-	#print('speeds=');print(speeds)
-	yMin=0
-	corrects=c(threshCriterion,threshCriterion,yMin-.2) #draw down to horizontal axis. The -.2 makes sure it extends into margin
-	
-	grid<-data.frame(speed=speeds,correct=corrects)
-	#print('grid='); print (grid)
-	return (grid) 
+makeMyThreshLine<- function(iv,threshColumnName,criterion,xMin,yMin) {
+  fnToReturn <- function(df) {   #should be sent a one-row piece of data frame with thresh
+    threshes = df[,threshColumnName]
+    ivs=c(xMin,threshes[1],threshes[1])
+    corrects=c(criterion,criterion,yMin) #draw down to horizontal axis. The -.2 makes sure it extends into margin
+    pointsForLines<-data.frame(ivs,corrects)
+    names(pointsForLines) <- c(iv,"correct")
+    #print('grid='); print (grid)
+    return (pointsForLines) 
+  }  
 }
-
 options(warn=0) #needs to be 0, otherwise no way to catch warnings while also letting function to continue 
 #options(warn=1)#instead of default zero which waits until top-level function returns, this will print warnings as we go
 #ALERT THIS OPTIONS STUFF SHOULD BE INSIDE A FUNCTION, IF IT'S NEEDED AT ALL

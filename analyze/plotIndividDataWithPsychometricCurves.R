@@ -2,8 +2,8 @@
 #dat
 #iv 
 #maybe write a function that plots the psychometric functions for a dataset / experiment /criterion,
-plotIndividDataAndCurves <- function(dat,iv,psychometricCurves=NULL,worstCasePsychometricRegion=NULL,
-                                     factors) {
+plotIndividDataAndCurves <- function(dat,iv,factors,psychometricCurves=NULL,
+                                     worstCasePsychometricRegion=NULL,threshes=NULL  ) {
   #factors must be a named list including names color, rows, columns
   #rows, columns can be ".", meaning nothing. Color can be absent, meaning dont give different colors
   #draw individual psychometric functions
@@ -25,7 +25,7 @@ plotIndividDataAndCurves <- function(dat,iv,psychometricCurves=NULL,worstCasePsy
   if (!is.null(psychometricCurves)) {
     psychometricCurves$correct = psychometricCurves$pCorr 
     g=g+geom_line(data=psychometricCurves)
-    g=g+ geom_vline(mapping=aes(xintercept=0),lty=2)  #draw horizontal line for chance performance
+    #g=g+ geom_vline(mapping=aes(xintercept=0),lty=2)  #draw horizontal line for chance performance
   }
   g=g+xlab(iv)+ylab('Proportion respLeftRight')
   #g<- g+ theme(axis.title.y=element_text(size=12,angle=90),axis.text.y=element_text(size=10),axis.title.x=element_text(size=12),axis.text.x=element_text(size=10))
@@ -38,6 +38,18 @@ plotIndividDataAndCurves <- function(dat,iv,psychometricCurves=NULL,worstCasePsy
     #g=g+scale_fill_manual(values=colrs[1:2],labels=c("leftward saccade","rightward saccade"),name="",
     #                      guide=FALSE)  #actually guide=FALSE doesnt prevent lines from being drawn  
   }
+  
+  if (!is.null(threshes)) { #plot threshLines
+    xMin = min(psychometricCurves[,iv]) #assume that this represents leftmost point of graph. Theres a better
+        #way to get xmin out of ggplot but I forget
+    criterion = threshes[1,"criterion"] 
+    if (length(unique(threshes$criterion)) >1) { warning("More than one criterion provided, dont know which to use")}
+    calcThreshLine<- makeMyThreshLine(iv,threshColumnName="threshThisCrit",criterion=criterion,
+                                      xMin=xMin, yMin=0) 
+    threshLines <- ddply(threshesThis,unname(factors),calcThreshLine)
+    g<-g+ geom_line(data=threshLines,lty=1,size=0.9)  #,color="black") #emphasize lines so can see what's going on
+  }  
+  
   show(g)
   return(g)
 }

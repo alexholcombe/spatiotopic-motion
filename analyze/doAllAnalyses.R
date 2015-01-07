@@ -30,7 +30,6 @@ myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numxs=numPointsPerCurve,lap
 psychometrics<-ddply(fitParms,unname(factors),myPlotCurve)  
 
 source('plotIndividDataWithPsychometricCurves.R')
-# quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)  
 bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
 {
@@ -57,9 +56,8 @@ figTitle = paste("E",expThis,"_",factors["rows"],"_by_",factors["columns"],sep='
 if (length(unique(thisDat$subject))==1) #only one subject
   figTitle = paste(figTitle,unique(thisDat$subject)[1],sep='_')
 #quartz(figTitle,width=2*length(unique(thisDat$subject)),height=2.5) #,width=10,height=7)
-g<-plotIndividDataAndCurves(thisDat,iv,psychometrics,worstCasePsychometricRegion,factors)
-#add threshlines
-
+g<-plotIndividDataAndCurves(thisDat,iv,factors,psychometrics,worstCasePsychometricRegion,threshesThis)
+#PUT AN ERROR BAR ON THE INDIVIDUAL PARTICIPANT'S THRESH?
 ggsave( paste(figDir,figTitle,'.png',sep='')  )
 
 
