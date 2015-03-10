@@ -11,7 +11,7 @@ datMB$ran=NA; datMB$order=NA #because wasnt saved by psychopy-native, I guess
 dat=rbind(datMB,datE1)
 expName="SzinteCavanagh" 
 figDir = "../figures/"
-
+I THINK I STARTED CONVERTING THIS BUT THEN PAUSED WHILE FAJOU GOT STUFF WORKING WITH EYETRACKING
 source('helpers/psychometricHelpRobust6.R') #load fit,
 expThis=1
 iv="tilt"

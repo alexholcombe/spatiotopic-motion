@@ -10,7 +10,7 @@ from calcUnderOvercorrect import calcOverCorrected
 from plotHelpers import plotDataAndPsychometricCurve
 dataframeInPsychopy = True #merged 10 December 2014
 
-autopilot = True
+autopilot = False
 quitFinder = False
 if quitFinder:
     applescript="\'tell application \"Finder\" to quit\'" #quit Finder.
