@@ -11,7 +11,6 @@ datMB$ran=NA; datMB$order=NA #because wasnt saved by psychopy-native, I guess
 dat=rbind(datMB,datE1)
 expName="SzinteCavanagh" 
 figDir = "../figures/"
-I THINK I STARTED CONVERTING THIS BUT THEN PAUSED WHILE FAJOU GOT STUFF WORKING WITH EYETRACKING
 source('helpers/psychometricHelpRobust6.R') #load fit,
 expThis=1
 iv="tilt"
@@ -29,7 +28,8 @@ fitParms<-fit(thisDat,iv,unname(factors),lapseMinMax,lapseAffectBothEnds=TRUE,
 myPlotCurve <- makeMyPlotCurve4(iv,xLims[1],xLims[2],numxs=numPointsPerCurve,lapseAffectBothEnds=TRUE)
 psychometrics<-ddply(fitParms,unname(factors),myPlotCurve)  
 
-source('plotIndividDataWithPsychometricCurves.R')
+source('plotIndividDataWithPsychometricCurves.R') #just a function definition
+
 bootstrapTheFit = TRUE
 if (bootstrapTheFit) ########################do bootstrapping of psychometric function###############
 {

@@ -33,6 +33,9 @@ Sample data from Alex, 48 trials per tilt
 In analyze folder
 ![plot](https://github.com/alexholcombe/spatiotopic-motion/blob/master/figures/examples/bySubjectE1Alex.png "Example results plot")
 
+- [Experiment notes](experiment_notes/README.md)
+
 ###To-do
 * DOES THE CODE WEIGH BY NUMBER OF DATA POINTS?
 * ADD MILLISECONDS AS IV TO THRESHES PLOT
+* Get Fajou-collected data anonymised and loaded, appropriate folders created
